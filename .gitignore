@@ -6,10 +6,10 @@
 .pnp.js
 
 # testing
-/coverage
+/coverage/
 
 # production
-/build
+/build/
 
 # misc
 .DS_Store
@@ -18,6 +18,8 @@
 .env.test.local
 .env.production.local
 
+# Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
