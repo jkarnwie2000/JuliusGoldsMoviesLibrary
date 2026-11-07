@@ -1819,3 +1819,52 @@ img {
   font-size: 13px;
   color: #555;
 }
+
+.admin__notice--page {
+  margin-bottom: 24px;
+}
+
+.admin__notice--page svg {
+  color: #1d7a45;
+}
+
+.admin__resend {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  white-space: normal;
+}
+
+.admin__resend--sent {
+  color: #1d7a45;
+}
+
+.admin__resend--error {
+  color: #b42318;
+}
+
+/* Footer admin link: quiet, but easy to find */
+.footer__admin {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 16px;
+  padding: 6px 14px;
+  border: 1px solid #ddd;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #444;
+  transition: border-color 200ms ease, color 200ms ease;
+}
+
+.footer__admin:hover {
+  text-decoration: none;
+  border-color: #f5c518;
+  color: #111;
+}
+
+.footer__admin svg {
+  color: #b8860b;
+  font-size: 11px;
+}

@@ -56,7 +56,7 @@ const CheckoutSuccess = ({ clearCart }) => {
                   Your payment{amount && <> of <strong>{amount}</strong></>} was successful.
                   {order.email && (
                     <>
-                      {" "}A receipt has been sent to <strong>{order.email}</strong>.
+                      {" "}A confirmation email is on its way to <strong>{order.email}</strong>.
                     </>
                   )}
                 </p>

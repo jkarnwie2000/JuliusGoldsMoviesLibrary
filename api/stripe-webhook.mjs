@@ -6,7 +6,7 @@
 // can't trigger emails or fake an order.
 import Stripe from "stripe";
 import { getOrder } from "./_lib/orders.mjs";
-import { businessEmail, buyerEmail, sendEmail } from "./_lib/email.mjs";
+import { sendOrderEmails } from "./_lib/email.mjs";
 
 const HANDLED = new Set(["checkout.session.completed", "checkout.session.async_payment_succeeded"]);
 
@@ -44,39 +44,11 @@ export default async function handler(req, res) {
   }
 
   const order = await getOrder(stripe, session.id);
-  const sends = [];
-  if (order.email) {
-    const { subject, html } = buyerEmail(order);
-    sends.push(
-      sendEmail({
-        to: order.email,
-        subject,
-        html,
-        replyTo: process.env.BUSINESS_EMAIL,
-        idempotencyKey: `order-${order.id}-buyer`,
-      })
-    );
-  }
-  if (process.env.BUSINESS_EMAIL) {
-    const { subject, html } = businessEmail(order);
-    sends.push(
-      sendEmail({
-        to: process.env.BUSINESS_EMAIL,
-        subject,
-        html,
-        replyTo: order.email || undefined,
-        idempotencyKey: `order-${order.id}-business`,
-      })
-    );
-  }
-
-  const results = await Promise.allSettled(sends);
-  const failed = results.filter((r) => r.status === "rejected");
-  failed.forEach((r) => console.error("Order email failed:", r.reason?.message));
+  const result = await sendOrderEmails(order);
 
   // If every email failed, return 500 so Stripe retries later (idempotency keys prevent duplicates).
-  if (sends.length > 0 && failed.length === sends.length) {
+  if (result.attempted > 0 && result.sent === 0) {
     return res.status(500).json({ error: "Email delivery failed" });
   }
-  return res.status(200).json({ received: true, emailed: sends.length - failed.length });
+  return res.status(200).json({ received: true, emailed: result.sent });
 }

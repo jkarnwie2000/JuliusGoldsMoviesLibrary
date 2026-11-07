@@ -104,3 +104,46 @@ export function businessEmail(order) {
     ),
   };
 }
+
+// Sends the buyer receipt and the business copy for an order.
+// `tag` makes the idempotency keys unique: the automatic send uses "auto" so a
+// repeated Stripe notification never emails twice; manual resends use a fresh tag.
+export async function sendOrderEmails(order, { tag = "auto" } = {}) {
+  const jobs = [];
+  if (order.email) {
+    const { subject, html } = buyerEmail(order);
+    jobs.push({
+      to: "buyer",
+      send: sendEmail({
+        to: order.email,
+        subject,
+        html,
+        replyTo: process.env.BUSINESS_EMAIL,
+        idempotencyKey: `order-${order.id}-buyer-${tag}`,
+      }),
+    });
+  }
+  if (process.env.BUSINESS_EMAIL) {
+    const { subject, html } = businessEmail(order);
+    jobs.push({
+      to: "business",
+      send: sendEmail({
+        to: process.env.BUSINESS_EMAIL,
+        subject,
+        html,
+        replyTo: order.email || undefined,
+        idempotencyKey: `order-${order.id}-business-${tag}`,
+      }),
+    });
+  }
+  const results = await Promise.allSettled(jobs.map((j) => j.send));
+  const outcome = { attempted: jobs.length, sent: 0, failures: [] };
+  results.forEach((r, i) => {
+    if (r.status === "fulfilled") outcome.sent++;
+    else {
+      console.error(`Order email to ${jobs[i].to} failed:`, r.reason?.message);
+      outcome.failures.push({ to: jobs[i].to, error: r.reason?.message || "unknown error" });
+    }
+  });
+  return outcome;
+}

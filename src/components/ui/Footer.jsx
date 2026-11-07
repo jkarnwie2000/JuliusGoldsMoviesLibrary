@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faFacebookF,
@@ -17,7 +17,19 @@ const SOCIAL_LINKS = [
   { name: "TikTok", icon: faTiktok, url: "https://www.tiktok.com/" },
 ];
 
+// True when this browser has an unexpired admin sign-in (saved by the Admin page).
+function isAdminSignedIn() {
+  try {
+    const s = JSON.parse(localStorage.getItem("jg-admin-session"));
+    return Boolean(s?.token && s.expiresAt > Date.now());
+  } catch {
+    return false;
+  }
+}
+
 const Footer = () => {
+  useLocation(); // re-check the sign-in each time the page changes
+  const signedIn = isAdminSignedIn();
   return (
     <footer>
       <div className="container">
@@ -52,6 +64,9 @@ const Footer = () => {
           <div className="footer__copyright">
             Copyright &copy; {new Date().getFullYear()} Julius Gold's Movies
           </div>
+          <Link to="/admin" className="footer__admin" rel="nofollow">
+            <FontAwesomeIcon icon="lock" /> {signedIn ? "Admin dashboard" : "Admin login"}
+          </Link>
         </div>
       </div>
     </footer>

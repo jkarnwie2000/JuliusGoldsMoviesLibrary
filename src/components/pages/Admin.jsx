@@ -194,6 +194,21 @@ const Admin = () => {
   const [error, setError] = useState("");
   const [authNotice, setAuthNotice] = useState("");
   const [connecting, setConnecting] = useState(false);
+  const [resend, setResend] = useState({}); // orderId -> { state: "sending" | "sent" | "error", text }
+
+  async function resendEmails(orderId) {
+    setResend((r) => ({ ...r, [orderId]: { state: "sending" } }));
+    try {
+      const result = await adminFetch(session.token, { action: "resend-emails", orderId });
+      const text = result.failures?.length
+        ? `Sent ${result.sent} of ${result.attempted} (${result.failures.map((f) => f.to).join(", ")} failed)`
+        : `Sent ${result.sent} email${result.sent === 1 ? "" : "s"}`;
+      setResend((r) => ({ ...r, [orderId]: { state: result.failures?.length ? "error" : "sent", text } }));
+    } catch (err) {
+      if (err.status === 401 || err.status === 403) return signOut(err.message);
+      setResend((r) => ({ ...r, [orderId]: { state: "error", text: err.message } }));
+    }
+  }
 
   const signOut = useCallback((notice = "") => {
     saveSession(null);
@@ -311,6 +326,13 @@ const Admin = () => {
 
       {error && <p className="admin__error">{error}</p>}
 
+      {setup.webhookJustConnected && (
+        <p className="admin__notice admin__notice--page">
+          <FontAwesomeIcon icon="circle-check" /> Order emails are now connected. New orders will email the buyer
+          and {setup.businessEmail}. For earlier orders, use <strong>Resend emails</strong> below.
+        </p>
+      )}
+
       {!allSet && (
         <section className="admin__card admin__setup">
           <h2 className="admin__card-title">Finish setting up order emails</h2>
@@ -381,6 +403,7 @@ const Admin = () => {
                     <th>Movies</th>
                     <th>Ship to</th>
                     <th className="num">Total</th>
+                    <th>Emails</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -404,6 +427,21 @@ const Admin = () => {
                           : "—"}
                       </td>
                       <td className="num">{money(o.totalCents)}</td>
+                      <td className="nowrap">
+                        <button
+                          className="admin__btn admin__btn--small admin__btn--ghost"
+                          onClick={() => resendEmails(o.id)}
+                          disabled={resend[o.id]?.state === "sending"}
+                        >
+                          {resend[o.id]?.state === "sending" ? "Sending..." : "Resend emails"}
+                        </button>
+                        {resend[o.id]?.text && (
+                          <span className={`admin__resend admin__resend--${resend[o.id].state}`}>
+                            <FontAwesomeIcon icon={resend[o.id].state === "sent" ? "circle-check" : "circle-exclamation"} />{" "}
+                            {resend[o.id].text}
+                          </span>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
