@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { getMovieById } from "../../api";
+import { getPrice, parseRating } from "../../pricing";
+import Price from "../ui/Price";
+import Rating from "../ui/Rating";
 
 const MovieInfo = () => {
   const { id } = useParams();
@@ -53,6 +56,8 @@ const MovieInfo = () => {
                       .filter((v) => v && v !== "N/A")
                       .join(" • ")}
                   </p>
+                  <Rating rating={parseRating(movie.imdbRating)} />
+                  <Price {...getPrice(movie.imdbID)} />
                   <div className="movie__summary">
                     <h3 className="movie__summary--title">Summary</h3>
                     <p className="movie__summary--para">{movie.Plot}</p>
