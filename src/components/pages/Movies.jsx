@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Movie from "../ui/Movie";
 import { searchMovies } from "../../api";
 import { useRatings } from "../../hooks";
-import { effectivePrice, getPrice } from "../../pricing";
+import { effectivePrice, getPrice } from "../../pricing.mjs";
 
 const DEFAULT_QUERY = "Avengers"; // shown before the user searches
 const MIN_CHARS = 3;

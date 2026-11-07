@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Nav from "./components/ui/Nav";
 import Footer from "./components/ui/Footer";
@@ -8,25 +8,54 @@ import Home from "./components/pages/Home";
 const Movies = lazy(() => import("./components/pages/Movies"));
 const MovieInfo = lazy(() => import("./components/pages/MovieInfo"));
 const Cart = lazy(() => import("./components/pages/Cart"));
+const CheckoutSuccess = lazy(() => import("./components/pages/CheckoutSuccess"));
+
+const CART_KEY = "jg-movies-cart";
+
+// The cart is saved in the browser so it survives page reloads and the
+// round trip to Stripe's checkout page.
+function loadCart() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(CART_KEY));
+    return Array.isArray(saved) ? saved : [];
+  } catch {
+    return [];
+  }
+}
 
 function App() {
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState(loadCart);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(CART_KEY, JSON.stringify(cart));
+    } catch {
+      // Storage unavailable (private mode etc.) — cart still works for this visit.
+    }
+  }, [cart]);
 
   const addToCart = useCallback((movie) => {
-    setCart((prev) => [...prev, { ...movie, quantity: 1 }]);
+    setCart((prev) =>
+      prev.some((item) => item.id === movie.id)
+        ? prev.map((item) =>
+            item.id === movie.id ? { ...item, quantity: Math.min(99, item.quantity + 1) } : item
+          )
+        : [...prev, { ...movie, quantity: 1 }]
+    );
   }, []);
 
   const changeQuantity = useCallback((movie, quantity) => {
+    const qty = Math.max(0, Math.min(99, Math.floor(+quantity) || 0));
     setCart((prev) =>
-      prev.map((item) =>
-        item.id === movie.id ? { ...item, quantity: +quantity } : item
-      )
+      prev.map((item) => (item.id === movie.id ? { ...item, quantity: qty } : item))
     );
   }, []);
 
   const removeItem = useCallback((item) => {
     setCart((prev) => prev.filter((movie) => movie.id !== item.id));
   }, []);
+
+  const clearCart = useCallback(() => setCart([]), []);
 
   const numberOfItems = useMemo(
     () => cart.reduce((sum, item) => sum + item.quantity, 0),
@@ -54,6 +83,10 @@ function App() {
                   removeItem={removeItem}
                 />
               }
+            />
+            <Route
+              path="/checkout/success"
+              element={<CheckoutSuccess clearCart={clearCart} />}
             />
           </Routes>
         </Suspense>

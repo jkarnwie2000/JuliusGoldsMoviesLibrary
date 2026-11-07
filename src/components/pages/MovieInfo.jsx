@@ -2,14 +2,15 @@ import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { getMovieById } from "../../api";
-import { getPrice, parseRating } from "../../pricing";
+import { getPrice, parseRating } from "../../pricing.mjs";
 import Price from "../ui/Price";
 import Rating from "../ui/Rating";
 
-const MovieInfo = () => {
+const MovieInfo = ({ addToCart, cart }) => {
   const { id } = useParams();
   const [movie, setMovie] = useState(null);
   const [error, setError] = useState(null);
+  const inCart = cart.some((item) => item.id === id);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -58,6 +59,28 @@ const MovieInfo = () => {
                   </p>
                   <Rating rating={parseRating(movie.imdbRating)} />
                   <Price {...getPrice(movie.imdbID)} />
+                  <div className="movie__selected--actions">
+                    {inCart ? (
+                      <Link to="/cart" className="btn movie__cart-btn">
+                        <FontAwesomeIcon icon="shopping-cart" /> In Cart: View Cart
+                      </Link>
+                    ) : (
+                      <button
+                        className="btn movie__cart-btn"
+                        onClick={() =>
+                          addToCart({
+                            id: movie.imdbID,
+                            Title: movie.Title,
+                            Year: movie.Year,
+                            Poster: movie.Poster,
+                            ...getPrice(movie.imdbID),
+                          })
+                        }
+                      >
+                        <FontAwesomeIcon icon="shopping-cart" /> Add to Cart
+                      </button>
+                    )}
+                  </div>
                   <div className="movie__summary">
                     <h3 className="movie__summary--title">Summary</h3>
                     <p className="movie__summary--para">{movie.Plot}</p>

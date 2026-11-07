@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { getMovieById } from "./api";
-import { parseRating } from "./pricing";
+import { parseRating } from "./pricing.mjs";
 
 // True once the element has scrolled within `rootMargin` of the viewport (stays true).
 export function useInView(rootMargin = "300px") {

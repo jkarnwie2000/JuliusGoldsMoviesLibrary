@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { searchMovies } from "../../api";
 import { useInView, useRatings } from "../../hooks";
-import { getPrice } from "../../pricing";
+import { getPrice } from "../../pricing.mjs";
 import Movie from "./Movie";
 
 const MOVIES_PER_ROW = 8;
