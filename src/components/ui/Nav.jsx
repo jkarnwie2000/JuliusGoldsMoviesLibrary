@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 const Nav = ({ numberOfItems }) =>  {
   function openMenu() {
-    document.body.classList += ' menu--open';
+    document.body.classList.add('menu--open');
   }
 
   function closeMenu() {
@@ -47,17 +47,17 @@ const Nav = ({ numberOfItems }) =>  {
                 </button>
                 <ul className='menu__links'>
                     <li className='menu__list'>
-                        <Link to='/' className='menu__link'>
+                        <Link to='/' className='menu__link' onClick={closeMenu}>
                         Home
                         </Link>
                     </li>
                     <li className='menu__list'>
-                        <Link to='/' className='menu__link'>
+                        <Link to='/movies' className='menu__link' onClick={closeMenu}>
                         Movies
                         </Link>
                     </li>
                     <li className='menu__list'>
-                        <Link to='/' className='menu__link'>
+                        <Link to='/cart' className='menu__link' onClick={closeMenu}>
                         Cart
                         </Link>
                     </li>

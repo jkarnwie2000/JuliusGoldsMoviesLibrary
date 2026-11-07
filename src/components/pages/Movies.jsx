@@ -1,48 +1,30 @@
 import { useState } from "react";
 import Movie from "../ui/Movie";
-import axios from "axios";
+import { searchMovies } from "../../api";
 
 const Movies = () => {
   const [movies, setMovies] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-
-//   function filterMovies(filter) {
-//     if (filter === "LOW_TO_HIGH") {
-//       setMovies(
-//         movies
-//           .slice()
-//           .sort(
-//             (a, b) =>
-//               (a.salePrice || a.originalPrice) -
-//               (b.salePrice || b.originalPrice),
-//           ),
-//       );
-//     }
-
-//     if (filter === "HIGH_TO_LOW") {
-//       setMovies(
-//         movies
-//           .slice()
-//           .sort(
-//             (a, b) =>
-//               (b.salePrice || b.originalPrice) -
-//               (a.salePrice || a.originalPrice),
-//           ),
-//       );
-//     }
-
-//     if (filter === "RATING") {
-//       setMovies(movies.slice().sort((a, b) => b.rating - a.rating));
-//     }
-//   }
+  const [status, setStatus] = useState("idle"); // idle | loading | done | error
 
   async function fetchMovies(e) {
     e.preventDefault();
-    const res = await axios.get(
-      `https://www.omdbapi.com/?apikey=25cd594&s=${searchTerm}`,
-    );
-    const data = res.data.Search;
-    setMovies(data);
+    if (!searchTerm.trim()) return;
+    setStatus("loading");
+    try {
+      // Two pages in parallel gives up to 20 results instead of 10.
+      const [page1, page2] = await Promise.all([
+        searchMovies(searchTerm, { page: 1 }),
+        searchMovies(searchTerm, { page: 2 }).catch(() => []),
+      ]);
+      const unique = new Map([...page1, ...page2].map((m) => [m.imdbID, m]));
+      setMovies([...unique.values()]);
+      setStatus("done");
+    } catch (err) {
+      console.error(err);
+      setMovies([]);
+      setStatus("error");
+    }
   }
 
   return (
@@ -55,9 +37,12 @@ const Movies = () => {
               <input
                 type="text"
                 placeholder="Search for movies..."
+                value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <button onClick={fetchMovies}>Search</button>
+              <button type="submit" disabled={status === "loading"}>
+                {status === "loading" ? "Searching..." : "Search"}
+              </button>
             </form>
           </div>
           <div className="movies__container">
@@ -67,9 +52,15 @@ const Movies = () => {
                   All Movies
                 </h2>
               </div>
+              {status === "error" && (
+                <p className="movies__message">Something went wrong. Please try again.</p>
+              )}
+              {status === "done" && movies.length === 0 && (
+                <p className="movies__message">No movies found for "{searchTerm}".</p>
+              )}
               <div className="movies">
                 {movies.map((movie) => (
-                  <Movie movie={movie} key={movie.id} />
+                  <Movie movie={movie} key={movie.imdbID} />
                 ))}
               </div>
             </div>

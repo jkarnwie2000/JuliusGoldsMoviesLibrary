@@ -1,62 +1,66 @@
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom"
-import Nav from './components/ui/Nav';
-import Home from "./components/pages/Home";
-import { useEffect, useState } from "react";
-import Movies from "./components/pages/Movies";
-import { movies } from "./data.js";
-import MovieInfo from "./components/pages/MovieInfo";
-import Cart from "./components/pages/Cart";
+import { lazy, Suspense, useCallback, useMemo, useState } from "react";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import Nav from "./components/ui/Nav";
 import Footer from "./components/ui/Footer";
+import Home from "./components/pages/Home";
 
+// Non-home pages are split into separate bundles and loaded on demand.
+const Movies = lazy(() => import("./components/pages/Movies"));
+const MovieInfo = lazy(() => import("./components/pages/MovieInfo"));
+const Cart = lazy(() => import("./components/pages/Cart"));
 
 function App() {
   const [cart, setCart] = useState([]);
-  function addToCart(movie) {
-    setCart([...cart, {...movie, quantity: 1}])
-  }
 
-  function changeQuantity(movie, quantity) {
-    setCart(cart.map(item => item.id === movie.id 
-      ? {
-        ...item,
-        quantity: +quantity,
-      }
-      : item 
-    )
+  const addToCart = useCallback((movie) => {
+    setCart((prev) => [...prev, { ...movie, quantity: 1 }]);
+  }, []);
+
+  const changeQuantity = useCallback((movie, quantity) => {
+    setCart((prev) =>
+      prev.map((item) =>
+        item.id === movie.id ? { ...item, quantity: +quantity } : item
+      )
+    );
+  }, []);
+
+  const removeItem = useCallback((item) => {
+    setCart((prev) => prev.filter((movie) => movie.id !== item.id));
+  }, []);
+
+  const numberOfItems = useMemo(
+    () => cart.reduce((sum, item) => sum + item.quantity, 0),
+    [cart]
   );
-  }
-
-  function removeItem(item) {
-    setCart(cart.filter(movie => movie.id !== item.id))
-    console.log('removeItem', item)
-  }
-
-  function numberOfItems() {
-    let counter = 0;
-    cart.forEach(item => {
-      counter += item.quantity
-    })
-    return counter;
-  }
-
-  useEffect(() => {
-  }, [cart])
 
   return (
-    
-  <Router>
-    <div className="App">
-    <Nav numberOfItems={numberOfItems()} />      
-    <Routes>
-      <Route path="/" exact element={<Home/>} />
-      <Route path="/movies" exact element={<Movies movies={movies} />} />
-      <Route path="/movies/:id" element={<MovieInfo movies={movies} addToCart={addToCart} cart={cart} />} />
-      <Route path="/cart" element={<Cart movies={movies} cart={cart} changeQuantity={changeQuantity} removeItem={removeItem} />} />
-    </Routes>
-    <Footer />
-    </div>
-  </Router>    
+    <Router>
+      <div className="App">
+        <Nav numberOfItems={numberOfItems} />
+        <Suspense fallback={<p className="movies__message">Loading...</p>}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/movies" element={<Movies />} />
+            <Route
+              path="/movies/:id"
+              element={<MovieInfo addToCart={addToCart} cart={cart} />}
+            />
+            <Route
+              path="/cart"
+              element={
+                <Cart
+                  cart={cart}
+                  changeQuantity={changeQuantity}
+                  removeItem={removeItem}
+                />
+              }
+            />
+          </Routes>
+        </Suspense>
+        <Footer />
+      </div>
+    </Router>
   );
 }
 
-export default App
+export default App;

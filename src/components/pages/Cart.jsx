@@ -28,7 +28,7 @@ return price;
                         {
                             cart.map((movie) => {
                                 return (
-                                    <div className='cart__item'>
+                                    <div className='cart__item' key={movie.id}>
                                         <div className='cart__movie'>
                                             <img src={movie.Poster} 
                                             className='cart__movie--img'

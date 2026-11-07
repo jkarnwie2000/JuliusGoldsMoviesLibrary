@@ -847,3 +847,43 @@ img {
 
 
 
+
+/* Home page category rows */
+.movie__category .section__title {
+  padding-top: 48px;
+}
+
+#features.movie__category .section__title {
+  padding-top: 80px;
+}
+
+.movie__skeleton {
+  width: 100%;
+  max-width: 250px;
+  aspect-ratio: 2 / 3;
+  margin: auto;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #e6e6e6 25%, #f3f3f3 50%, #e6e6e6 75%);
+  background-size: 200% 100%;
+  animation: skeleton 1.2s ease-in-out infinite;
+}
+
+@keyframes skeleton {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+.movie__year {
+  opacity: 0.6;
+  font-weight: 400;
+}
+
+.movies__message {
+  text-align: center;
+  padding: 24px;
+}
+
+.movie__selected--meta {
+  opacity: 0.7;
+  margin-bottom: 16px;
+}
