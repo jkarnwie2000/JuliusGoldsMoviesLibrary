@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-const SESSION_KEY = "jg-admin-pass";
+const SESSION_KEY = "jg-admin-session";
 
 const money = (cents) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format((cents || 0) / 100);
@@ -9,23 +9,167 @@ const number = (n) => new Intl.NumberFormat("en-US").format(n || 0);
 const dateTime = (ms) =>
   new Date(ms).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 
-function readSaved() {
+// The signed-in session ({ token, email, expiresAt }) is kept in this browser
+// until it expires or you sign out.
+function readSession() {
   try {
-    return sessionStorage.getItem(SESSION_KEY) || "";
+    const s = JSON.parse(localStorage.getItem(SESSION_KEY));
+    return s && s.token && s.expiresAt > Date.now() ? s : null;
   } catch {
-    return "";
+    return null;
   }
 }
 
-async function adminFetch(password, options = {}) {
-  const res = await fetch("/api/admin", {
-    ...options,
-    headers: { "Content-Type": "application/json", "x-admin-password": password, ...options.headers },
+function saveSession(session) {
+  try {
+    if (session) localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    else localStorage.removeItem(SESSION_KEY);
+  } catch {}
+}
+
+async function postJson(url, body, token) {
+  const res = await fetch(url, {
+    method: body ? "POST" : "GET",
+    headers: { "Content-Type": "application/json", ...(token && { Authorization: `Bearer ${token}` }) },
+    ...(body && { body: JSON.stringify(body) }),
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw Object.assign(new Error(data.error || "Request failed"), { status: res.status });
   return data;
 }
+
+const adminFetch = (token, body) => postJson("/api/admin", body, token);
+const authAction = (body) => postJson("/api/auth", body);
+
+// ---------- Sign in / create account / reset password ----------
+const AdminAuth = ({ onSignedIn, notice }) => {
+  const [mode, setMode] = useState("signin"); // signin | request | verify
+  const [purpose, setPurpose] = useState("create"); // create | reset
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [message, setMessage] = useState(notice || "");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const MIN = 10;
+
+  const go = (next, nextPurpose) => {
+    setMode(next);
+    if (nextPurpose) setPurpose(nextPurpose);
+    setError("");
+    setMessage("");
+  };
+
+  async function run(fn) {
+    setBusy(true);
+    setError("");
+    try {
+      await fn();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const signIn = (e) => {
+    e.preventDefault();
+    run(async () => onSignedIn(await authAction({ action: "login", email, password })));
+  };
+
+  const requestCode = (e) => {
+    e?.preventDefault();
+    run(async () => {
+      const result = await authAction({ action: "request-code", email });
+      setMode("verify");
+      setMessage(result.message);
+    });
+  };
+
+  const setNew = (e) => {
+    e.preventDefault();
+    if (newPassword.length < MIN) return setError(`Password must be at least ${MIN} characters.`);
+    if (newPassword !== confirm) return setError("The two passwords don't match.");
+    run(async () => onSignedIn(await authAction({ action: "set-password", email, code, password: newPassword })));
+  };
+
+  const title =
+    mode === "signin" ? "Admin sign in" : purpose === "create" ? "Create your admin account" : "Reset your password";
+
+  return (
+    <main className="admin admin--login">
+      <div className="admin__login">
+        <FontAwesomeIcon icon="lock" className="admin__login--icon" />
+        <h2>{title}</h2>
+
+        {message && <p className="admin__notice">{message}</p>}
+
+        {mode === "signin" && (
+          <form onSubmit={signIn} className="admin__form">
+            <label htmlFor="admin-email">Email</label>
+            <input id="admin-email" type="email" autoComplete="username" value={email}
+              onChange={(e) => setEmail(e.target.value)} required autoFocus />
+            <label htmlFor="admin-password">Password</label>
+            <input id="admin-password" type="password" autoComplete="current-password" value={password}
+              onChange={(e) => setPassword(e.target.value)} required />
+            {error && <p className="admin__error">{error}</p>}
+            <button className="btn" type="submit" disabled={busy}>{busy ? "Signing in..." : "Sign in"}</button>
+            <div className="admin__links">
+              <button type="button" className="admin__link" onClick={() => go("request", "create")}>Create an account</button>
+              <button type="button" className="admin__link" onClick={() => go("request", "reset")}>Forgot password?</button>
+            </div>
+          </form>
+        )}
+
+        {mode === "request" && (
+          <form onSubmit={requestCode} className="admin__form">
+            <p className="admin__hint">
+              {purpose === "create"
+                ? "Admin accounts are limited to the business's approved email. We'll email you a 6-digit code to confirm it's you."
+                : "Enter your admin email and we'll send a 6-digit code so you can choose a new password."}
+            </p>
+            <label htmlFor="admin-email2">Email</label>
+            <input id="admin-email2" type="email" autoComplete="username" value={email}
+              onChange={(e) => setEmail(e.target.value)} required autoFocus />
+            {error && <p className="admin__error">{error}</p>}
+            <button className="btn" type="submit" disabled={busy}>{busy ? "Sending..." : "Email me a code"}</button>
+            <div className="admin__links">
+              <button type="button" className="admin__link" onClick={() => go("signin")}>Back to sign in</button>
+            </div>
+          </form>
+        )}
+
+        {mode === "verify" && (
+          <form onSubmit={setNew} className="admin__form">
+            <label htmlFor="admin-code">6-digit code</label>
+            <input id="admin-code" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code}
+              onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} required autoFocus
+              className="admin__code" />
+            <label htmlFor="admin-new">{purpose === "create" ? "Choose a password" : "New password"}</label>
+            <input id="admin-new" type="password" autoComplete="new-password" value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)} required />
+            <span className={`admin__rule ${newPassword.length >= MIN ? "admin__rule--ok" : ""}`}>
+              <FontAwesomeIcon icon={newPassword.length >= MIN ? "circle-check" : "circle-exclamation"} /> At least {MIN} characters
+            </span>
+            <label htmlFor="admin-confirm">Confirm password</label>
+            <input id="admin-confirm" type="password" autoComplete="new-password" value={confirm}
+              onChange={(e) => setConfirm(e.target.value)} required />
+            {error && <p className="admin__error">{error}</p>}
+            <button className="btn" type="submit" disabled={busy || code.length !== 6}>
+              {busy ? "Saving..." : purpose === "create" ? "Create account" : "Reset password"}
+            </button>
+            <div className="admin__links">
+              <button type="button" className="admin__link" onClick={requestCode} disabled={busy}>Send a new code</button>
+              <button type="button" className="admin__link" onClick={() => go("signin")}>Back to sign in</button>
+            </div>
+          </form>
+        )}
+      </div>
+    </main>
+  );
+};
 
 const StatTile = ({ label, value }) => (
   <div className="admin__tile">
@@ -44,56 +188,54 @@ const Check = ({ ok, children }) => (
 );
 
 const Admin = () => {
-  const [password, setPassword] = useState(readSaved);
-  const [input, setInput] = useState("");
+  const [session, setSession] = useState(readSession);
   const [data, setData] = useState(null);
-  const [status, setStatus] = useState(readSaved() ? "loading" : "login");
+  const [status, setStatus] = useState(readSession() ? "loading" : "login");
   const [error, setError] = useState("");
+  const [authNotice, setAuthNotice] = useState("");
   const [connecting, setConnecting] = useState(false);
 
-  const load = useCallback(async (pass) => {
-    setStatus("loading");
-    setError("");
-    try {
-      const result = await adminFetch(pass);
-      setData(result);
-      setPassword(pass);
-      try {
-        sessionStorage.setItem(SESSION_KEY, pass);
-      } catch {}
-      setStatus("ready");
-    } catch (err) {
-      setError(err.message);
-      if (err.status === 401 || err.status === 503) {
-        try {
-          sessionStorage.removeItem(SESSION_KEY);
-        } catch {}
-        setStatus("login");
-      } else {
-        setStatus("error");
-      }
-    }
+  const signOut = useCallback((notice = "") => {
+    saveSession(null);
+    setSession(null);
+    setData(null);
+    setAuthNotice(notice);
+    setStatus("login");
   }, []);
 
+  const load = useCallback(
+    async (s) => {
+      setStatus("loading");
+      setError("");
+      try {
+        setData(await adminFetch(s.token));
+        setStatus("ready");
+      } catch (err) {
+        if (err.status === 401 || err.status === 403) return signOut(err.message);
+        setError(err.message);
+        setStatus("error");
+      }
+    },
+    [signOut]
+  );
+
   useEffect(() => {
-    const saved = readSaved();
+    const saved = readSession();
     if (saved) load(saved);
   }, [load]);
 
-  function signOut() {
-    try {
-      sessionStorage.removeItem(SESSION_KEY);
-    } catch {}
-    setPassword("");
-    setData(null);
-    setStatus("login");
+  function handleSignedIn(newSession) {
+    saveSession(newSession);
+    setSession(newSession);
+    setAuthNotice("");
+    load(newSession);
   }
 
   async function connectWebhook() {
     setConnecting(true);
     try {
-      await adminFetch(password, { method: "POST", body: JSON.stringify({ action: "connect-webhook" }) });
-      await load(password);
+      await adminFetch(session.token, { action: "connect-webhook" });
+      await load(session);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -126,32 +268,8 @@ const Admin = () => {
     };
   }, [data]);
 
-  if (status === "login") {
-    return (
-      <main className="admin admin--login">
-        <form
-          className="admin__login"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (input) load(input);
-          }}
-        >
-          <FontAwesomeIcon icon="lock" className="admin__login--icon" />
-          <h2>Admin dashboard</h2>
-          <label htmlFor="admin-password">Password</label>
-          <input
-            id="admin-password"
-            type="password"
-            autoComplete="current-password"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            autoFocus
-          />
-          {error && <p className="admin__error">{error}</p>}
-          <button className="btn" type="submit">Sign in</button>
-        </form>
-      </main>
-    );
+  if (status === "login" || !session) {
+    return <AdminAuth onSignedIn={handleSignedIn} notice={authNotice} />;
   }
 
   if (status === "loading" && !data) {
@@ -162,7 +280,7 @@ const Admin = () => {
     return (
       <main className="admin">
         <p className="admin__error">{error}</p>
-        <button className="btn" onClick={() => load(password)}>Try again</button>
+        <button className="btn" onClick={() => load(session)}>Try again</button>
       </main>
     );
   }
@@ -181,12 +299,13 @@ const Admin = () => {
               {setup.stripeMode === "live" ? "Live mode" : "Test mode"}
             </span>
           </p>
+          <p className="admin__signed-in">Signed in as {data.signedInAs || session.email}</p>
         </div>
         <div className="admin__actions">
-          <button className="admin__btn" onClick={() => load(password)} disabled={status === "loading"}>
+          <button className="admin__btn" onClick={() => load(session)} disabled={status === "loading"}>
             {status === "loading" ? "Refreshing..." : "Refresh"}
           </button>
-          <button className="admin__btn admin__btn--ghost" onClick={signOut}>Sign out</button>
+          <button className="admin__btn admin__btn--ghost" onClick={() => signOut()}>Sign out</button>
         </div>
       </div>
 

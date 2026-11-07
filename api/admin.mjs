@@ -1,20 +1,12 @@
-// Admin API (password-protected via the ADMIN_PASSWORD environment variable).
+// Admin API (requires a signed-in admin account; see api/auth.mjs).
 //   GET  /api/admin                              -> recent paid orders + setup status
 //   POST /api/admin { action: "connect-webhook" } -> registers the Stripe webhook that sends order emails
-// The password is sent in the "x-admin-password" header.
-import { createHash, timingSafeEqual } from "node:crypto";
+// The session token is sent as "Authorization: Bearer <token>".
 import Stripe from "stripe";
+import { AuthError, verifySession } from "./_lib/auth.mjs";
 import { listPaidOrders } from "./_lib/orders.mjs";
 
 const WEBHOOK_EVENTS = ["checkout.session.completed", "checkout.session.async_payment_succeeded"];
-
-const digest = (s) => createHash("sha256").update(String(s)).digest();
-
-function isAuthorized(req) {
-  const given = req.headers["x-admin-password"];
-  if (!given || !process.env.ADMIN_PASSWORD) return false;
-  return timingSafeEqual(digest(given), digest(process.env.ADMIN_PASSWORD));
-}
 
 function siteOrigin(req) {
   if (process.env.SITE_URL) return process.env.SITE_URL.replace(/\/$/, "");
@@ -29,12 +21,13 @@ async function findWebhook(stripe, url) {
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
 
-  if (!process.env.ADMIN_PASSWORD) {
-    return res.status(503).json({ error: "The admin dashboard isn't set up yet (ADMIN_PASSWORD is missing)." });
-  }
-  if (!isAuthorized(req)) {
-    await new Promise((r) => setTimeout(r, 600)); // slow down password guessing
-    return res.status(401).json({ error: "Incorrect password." });
+  let admin;
+  try {
+    admin = await verifySession(req.headers.authorization);
+  } catch (err) {
+    if (err instanceof AuthError) return res.status(err.status).json({ error: err.message });
+    console.error("Admin auth error:", err.message);
+    return res.status(500).json({ error: "Couldn't verify your sign-in." });
   }
   if (!process.env.STRIPE_SECRET_KEY) {
     return res.status(500).json({ error: "Stripe is not configured." });
@@ -63,6 +56,7 @@ export default async function handler(req, res) {
 
     const [orders, webhook] = await Promise.all([listPaidOrders(stripe, 100), findWebhook(stripe, webhookUrl)]);
     return res.status(200).json({
+      signedInAs: admin.email,
       orders,
       setup: {
         stripeMode: process.env.STRIPE_SECRET_KEY.startsWith("sk_live") ? "live" : "test",
