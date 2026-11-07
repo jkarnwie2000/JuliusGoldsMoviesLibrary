@@ -934,18 +934,49 @@ img {
 
 
 
-/* Home page category rows */
+/* Home page rhythm: every section is separated by the same gap, and every
+   heading sits the same distance above its content. */
+:root {
+  --home-gap: 72px;       /* content of one section -> heading of the next */
+  --home-head-gap: 32px;  /* heading -> its posters / button */
+}
+
+@media (max-width: 768px) {
+  :root {
+    --home-gap: 56px;
+    --home-head-gap: 24px;
+  }
+}
+
+/* Movie cards already leave 32px under their price (24px padding + 8px margin),
+   so each row adds only the rest of the gap above its heading. */
+.movie__category .container {
+  padding: calc(var(--home-gap) - 32px) 0 0;
+}
+
 .movie__category .section__title {
-  padding-top: 48px;
-}
-
-/* "Why Choose..." already has bottom padding; keep the gap to it tight */
-#features.movie__category .container {
-  padding-top: 8px;
-}
-
-#features.movie__category .section__title {
   padding-top: 0;
+  margin-bottom: calc(var(--home-head-gap) - 24px);
+}
+
+/* The first row follows "Why Choose...", which already has 56px of bottom padding. */
+#features.movie__category .container {
+  padding-top: max(0px, calc(var(--home-gap) - 56px));
+}
+
+/* Explore follows the last row; the footer adds its own 56px top padding. */
+#explore .container {
+  padding: calc(var(--home-gap) - 32px) 0 max(0px, calc(var(--home-gap) - 56px));
+}
+
+#explore h2 {
+  margin-bottom: var(--home-head-gap);
+}
+
+#explore .btn {
+  border-radius: 999px;
+  padding: 14px 32px;
+  font-weight: 600;
 }
 
 .movie__skeleton {
