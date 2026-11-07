@@ -2,6 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Nav from "./components/ui/Nav";
 import Footer from "./components/ui/Footer";
+import ScrollToTop from "./components/ui/ScrollToTop";
 import Home from "./components/pages/Home";
 import { CartContext, CartToast } from "./cart";
 
@@ -98,6 +99,7 @@ function App() {
 
   return (
     <Router>
+      <ScrollToTop />
       <CartContext.Provider value={cartContext}>
       <div className="App">
         <Nav numberOfItems={numberOfItems} />

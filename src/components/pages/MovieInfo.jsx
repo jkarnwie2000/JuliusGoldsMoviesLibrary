@@ -49,7 +49,7 @@ const MovieInfo = () => {
             {error && <p className="movies__message">{error}</p>}
             {!error && !movie && <p className="movies__message">Loading...</p>}
             {movie && (
-              <div className="movie__selected">
+              <div className="movie__selected slide-up" key={movie.imdbID}>
                 <figure className="movie__selected--figure">
                   {movie.Poster && movie.Poster !== "N/A" && (
                     <img
