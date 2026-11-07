@@ -4,8 +4,8 @@
 // can never change what a customer is charged.
 import Stripe from "stripe";
 import { effectivePrice, getPrice, orderTotals, TAX_RATE, toCents } from "../src/pricing.mjs";
+import { fetchOmdb } from "./omdb.mjs";
 
-const OMDB_KEY = "25cd594";
 const IMDB_ID = /^tt\d{7,10}$/;
 const MAX_LINE_ITEMS = 50;
 const MAX_QUANTITY = 99;
@@ -14,8 +14,7 @@ const SHIPPING_COUNTRIES = ["US", "CA"];
 
 async function lookupMovie(id) {
   try {
-    const res = await fetch(`https://www.omdbapi.com/?apikey=${OMDB_KEY}&i=${id}`);
-    const data = await res.json();
+    const { data } = await fetchOmdb({ i: id });
     return data.Response === "True" ? data : null;
   } catch {
     return null;

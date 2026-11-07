@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Price from "./Price";
 import Rating from "./Rating";
+import { AddToCart } from "../../cart";
 
 // Price and rating are shown only when the movie object carries them (Movies page).
 const Movie = ({ movie, showDetails = false }) => {
@@ -39,6 +40,7 @@ const Movie = ({ movie, showDetails = false }) => {
         <>
           <Rating rating={movie.rating} />
           <Price originalPrice={movie.originalPrice} salePrice={movie.salePrice} />
+          <AddToCart movie={movie} />
         </>
       )}
     </div>

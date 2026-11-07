@@ -1,7 +1,9 @@
 import axios from "axios";
 
-const API_KEY = "25cd594";
-const BASE_URL = "https://www.omdbapi.com/";
+// Movie data comes through our own server function (api/omdb.mjs), which holds
+// the OMDb key and caches answers for everyone. Locally, run `vercel dev` so
+// /api routes work; `npm start` alone doesn't serve them.
+const BASE_URL = "/api/omdb";
 
 // Session-level cache so revisiting a page doesn't re-hit the API.
 const cache = new Map();
@@ -22,7 +24,7 @@ function cachedGet(params, signal) {
   const key = new URLSearchParams(params).toString();
   if (!cache.has(key)) {
     const request = axios
-      .get(BASE_URL, { params: { apikey: API_KEY, ...params } })
+      .get(BASE_URL, { params })
       .then((res) => res.data)
       .catch((err) => {
         cache.delete(key); // don't cache failures
@@ -36,7 +38,8 @@ function cachedGet(params, signal) {
 const hasPoster = (movie) => movie.Poster && movie.Poster !== "N/A";
 
 export async function searchMovies(term, { page = 1, signal } = {}) {
-  const data = await cachedGet({ s: term.trim(), page, type: "movie" }, signal);
+  // Lowercased so "Batman" and "batman" share one cached answer.
+  const data = await cachedGet({ s: term.trim().toLowerCase(), page }, signal);
   if (data.Response === "False") return [];
   return (data.Search || []).filter(hasPoster);
 }

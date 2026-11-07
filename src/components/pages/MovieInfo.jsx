@@ -1,16 +1,25 @@
 import React, { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { getMovieById } from "../../api";
+import { AddToCart, useCart } from "../../cart";
 import { getPrice, parseRating } from "../../pricing.mjs";
 import Price from "../ui/Price";
 import Rating from "../ui/Rating";
 
-const MovieInfo = ({ addToCart, cart }) => {
+const MovieInfo = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { quantityOf } = useCart();
+  const inCart = quantityOf(id) > 0;
   const [movie, setMovie] = useState(null);
   const [error, setError] = useState(null);
-  const inCart = cart.some((item) => item.id === id);
+
+  // Go back to where the shopper came from (keeps their search), or to the Movies page.
+  const continueShopping = () => {
+    if (window.history.state?.idx > 0) navigate(-1);
+    else navigate("/movies");
+  };
 
   useEffect(() => {
     const controller = new AbortController();
@@ -60,25 +69,16 @@ const MovieInfo = ({ addToCart, cart }) => {
                   <Rating rating={parseRating(movie.imdbRating)} />
                   <Price {...getPrice(movie.imdbID)} />
                   <div className="movie__selected--actions">
-                    {inCart ? (
-                      <Link to="/cart" className="btn movie__cart-btn">
-                        <FontAwesomeIcon icon="shopping-cart" /> In Cart: View Cart
-                      </Link>
-                    ) : (
-                      <button
-                        className="btn movie__cart-btn"
-                        onClick={() =>
-                          addToCart({
-                            id: movie.imdbID,
-                            Title: movie.Title,
-                            Year: movie.Year,
-                            Poster: movie.Poster,
-                            ...getPrice(movie.imdbID),
-                          })
-                        }
-                      >
-                        <FontAwesomeIcon icon="shopping-cart" /> Add to Cart
-                      </button>
+                    <AddToCart movie={movie} size="large" />
+                    {inCart && (
+                      <div className="movie__selected--next">
+                        <button type="button" className="movie__next-btn" onClick={continueShopping}>
+                          <FontAwesomeIcon icon="arrow-left" /> Continue shopping
+                        </button>
+                        <Link to="/cart" className="movie__next-btn movie__next-btn--cart">
+                          View cart &amp; checkout
+                        </Link>
+                      </div>
                     )}
                   </div>
                   <div className="movie__summary">
