@@ -143,6 +143,11 @@ export async function issueCode(rawEmail) {
   return { email, code, minutes: CODE_MINUTES };
 }
 
+// Removes a pending code (e.g. when its email failed to send).
+export async function clearCode(email) {
+  await del(pathFor("codes", normalizeEmail(email))).catch(() => {});
+}
+
 // Creates the account, or resets its password if it already exists.
 export async function setPasswordWithCode(rawEmail, rawCode, password) {
   assertConfigured();

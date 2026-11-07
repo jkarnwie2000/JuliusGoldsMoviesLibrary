@@ -3,7 +3,7 @@
 //   { action: "set-password", email, code, password } -> creates the account or resets the password; signs in
 //   { action: "login", email, password }             -> signs in
 //   { action: "me" } with "Authorization: Bearer <token>" -> checks a session
-import { AuthError, issueCode, login, MIN_PASSWORD, setPasswordWithCode, verifySession } from "./_lib/auth.mjs";
+import { AuthError, clearCode, issueCode, login, MIN_PASSWORD, setPasswordWithCode, verifySession } from "./_lib/auth.mjs";
 import { sendEmail } from "./_lib/email.mjs";
 
 const CODE_SENT = "If that email is approved for admin access, a 6-digit code is on its way. Check your inbox (and spam folder).";
@@ -36,11 +36,17 @@ export default async function handler(req, res) {
         const issued = await issueCode(email);
         if (issued.code) {
           if (!process.env.RESEND_API_KEY) throw new AuthError("Email sending isn't set up (RESEND_API_KEY).", 503);
-          await sendEmail({
-            to: issued.email,
-            subject: `${issued.code} is your admin verification code`,
-            html: codeEmail(issued.code, issued.minutes),
-          });
+          try {
+            await sendEmail({
+              to: issued.email,
+              subject: `${issued.code} is your admin verification code`,
+              html: codeEmail(issued.code, issued.minutes),
+            });
+          } catch (err) {
+            console.error("Code email failed:", err.message);
+            await clearCode(issued.email); // let them retry right away once email is fixed
+            throw new AuthError("We couldn't send the code email. Please try again in a few minutes.", 502);
+          }
         }
         return res.status(200).json({ ok: true, message: CODE_SENT, minPassword: MIN_PASSWORD });
       }

@@ -9,11 +9,14 @@ const DEFAULT_FROM = "Julius Gold's Movies <onboarding@resend.dev>";
 const esc = (s) =>
   String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
+// Tolerates stray whitespace or quotes pasted around the key.
+const resendKey = () => String(process.env.RESEND_API_KEY || "").trim().replace(/^["']|["']$/g, "");
+
 export async function sendEmail({ to, subject, html, replyTo, idempotencyKey }) {
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      Authorization: `Bearer ${resendKey()}`,
       "Content-Type": "application/json",
       // Stripe may deliver the same webhook twice; this stops duplicate emails.
       ...(idempotencyKey && { "Idempotency-Key": idempotencyKey }),
