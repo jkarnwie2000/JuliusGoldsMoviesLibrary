@@ -2,8 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Movie from "../ui/Movie";
-import { getMovieById, searchMovies } from "../../api";
-import { effectivePrice, getPrice, parseRating } from "../../pricing";
+import { searchMovies } from "../../api";
+import { useRatings } from "../../hooks";
+import { effectivePrice, getPrice } from "../../pricing";
 
 const DEFAULT_QUERY = "Avengers"; // shown before the user searches
 const MIN_CHARS = 3;
@@ -43,7 +44,6 @@ const Movies = () => {
 
   const [input, setInput] = useState(query);
   const [results, setResults] = useState([]);
-  const [ratings, setRatings] = useState({});
   const [status, setStatus] = useState("loading"); // loading | done | error
 
   const updateParams = useCallback(
@@ -87,16 +87,6 @@ const Movies = () => {
         const unique = [...new Map([...page1, ...page2].map((m) => [m.imdbID, m])).values()];
         setResults(unique);
         setStatus("done");
-
-        // Ratings need one detail request per movie; load them in the background.
-        unique.forEach(({ imdbID }) => {
-          getMovieById(imdbID, { signal })
-            .then((data) => parseRating(data.imdbRating))
-            .catch(() => (signal.aborted ? undefined : null))
-            .then((rating) => {
-              if (!signal.aborted) setRatings((prev) => ({ ...prev, [imdbID]: rating }));
-            });
-        });
       })
       .catch(() => {
         if (signal.aborted) return;
@@ -106,6 +96,10 @@ const Movies = () => {
 
     return () => controller.abort();
   }, [query]);
+
+  // Ratings need one detail request per movie; they load in the background.
+  const ids = useMemo(() => results.map((m) => m.imdbID), [results]);
+  const ratings = useRatings(ids);
 
   const movies = useMemo(() => {
     const priced = results.map((m) => ({

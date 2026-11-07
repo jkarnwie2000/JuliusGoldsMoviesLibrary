@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { searchMovies } from "../../api";
+import { useInView, useRatings } from "../../hooks";
+import { getPrice } from "../../pricing";
 import Movie from "./Movie";
 
 const MOVIES_PER_ROW = 8;
@@ -27,53 +29,66 @@ const SkeletonRow = () => (
   </div>
 );
 
-const Featured = () => {
-  const [rows, setRows] = useState({});
+// A row only loads its movies and ratings when it scrolls near the viewport,
+// so the first screen loads fast and off-screen rows cost no API calls.
+const CategoryRow = ({ title, query, id }) => {
+  const [ref, inView] = useInView("400px");
+  const [results, setResults] = useState(null);
 
   useEffect(() => {
+    if (!inView) return;
     const controller = new AbortController();
-
-    // Fetch all categories in parallel; each row renders as soon as it arrives.
-    CATEGORIES.forEach(({ query }) => {
-      searchMovies(query, { signal: controller.signal })
-        .then((movies) => setRows((prev) => ({ ...prev, [query]: movies })))
-        .catch((err) => {
-          if (!controller.signal.aborted) {
-            setRows((prev) => ({ ...prev, [query]: [] }));
-            console.error(`Failed to load "${query}"`, err);
-          }
-        });
-    });
-
+    searchMovies(query, { signal: controller.signal })
+      .then((movies) => setResults(movies.slice(0, MOVIES_PER_ROW)))
+      .catch((err) => {
+        if (controller.signal.aborted) return;
+        console.error(`Failed to load "${query}"`, err);
+        setResults([]);
+      });
     return () => controller.abort();
-  }, []);
+  }, [inView, query]);
+
+  const ids = useMemo(() => (results || []).map((m) => m.imdbID), [results]);
+  const ratings = useRatings(ids);
+
+  const movies = useMemo(
+    () =>
+      (results || []).map((m) => ({
+        ...m,
+        ...getPrice(m.imdbID),
+        rating: ratings[m.imdbID],
+      })),
+    [results, ratings]
+  );
+
+  if (results && results.length === 0) return null;
 
   return (
-    <>
-      {CATEGORIES.map(({ title, query, id }) => {
-        const movies = rows[query];
-        if (movies && movies.length === 0) return null;
-        return (
-          <section id={id} className="movie__category" key={query}>
-            <div className="container">
-              <div className="row">
-                <h2 className="section__title">{title}</h2>
-                {movies ? (
-                  <div className="movies">
-                    {movies.slice(0, MOVIES_PER_ROW).map((movie) => (
-                      <Movie movie={movie} key={movie.imdbID} />
-                    ))}
-                  </div>
-                ) : (
-                  <SkeletonRow />
-                )}
-              </div>
+    <section id={id} className="movie__category" ref={ref}>
+      <div className="container">
+        <div className="row">
+          <h2 className="section__title">{title}</h2>
+          {results ? (
+            <div className="movies">
+              {movies.map((movie) => (
+                <Movie movie={movie} key={movie.imdbID} showDetails />
+              ))}
             </div>
-          </section>
-        );
-      })}
-    </>
+          ) : (
+            <SkeletonRow />
+          )}
+        </div>
+      </div>
+    </section>
   );
 };
+
+const Featured = () => (
+  <>
+    {CATEGORIES.map((category) => (
+      <CategoryRow {...category} key={category.query} />
+    ))}
+  </>
+);
 
 export default Featured;
