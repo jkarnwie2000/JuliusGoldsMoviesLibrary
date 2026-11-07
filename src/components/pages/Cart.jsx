@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { orderTotals, TAX_RATE } from "../../pricing.mjs";
 
 const itemPrice = (item) => item.salePrice || item.originalPrice;
 
@@ -10,13 +11,15 @@ const Cart = ({ cart, changeQuantity, removeItem }) => {
   const [checkingOut, setCheckingOut] = useState(false);
   const [error, setError] = useState("");
 
-  const total = cart.reduce((sum, item) => sum + itemPrice(item) * item.quantity, 0);
   const savings = cart.reduce(
     (sum, item) =>
       item.salePrice ? sum + (item.originalPrice - item.salePrice) * item.quantity : sum,
     0
   );
   const purchasable = cart.filter((item) => item.quantity > 0);
+  // Same math the checkout server uses, so the cart matches what Stripe charges.
+  const totals = orderTotals(purchasable.map(({ id, quantity }) => ({ id, quantity })));
+  const money = (cents) => `$${(cents / 100).toFixed(2)}`;
 
   // Ask our server to create a Stripe Checkout Session, then go to Stripe's
   // secure payment page. Prices are recalculated on the server.
@@ -108,15 +111,27 @@ const Cart = ({ cart, changeQuantity, removeItem }) => {
 
             {cart.length > 0 && (
               <div className="total">
+                <div className="total__item">
+                  <span>Subtotal</span>
+                  <span>{money(totals.subtotalCents)}</span>
+                </div>
                 {savings > 0 && (
                   <div className="total__item total__savings">
-                    <span>You save</span>
-                    <span>-${savings.toFixed(2)}</span>
+                    <span>You saved</span>
+                    <span>${savings.toFixed(2)}</span>
                   </div>
                 )}
+                <div className="total__item">
+                  <span>Tax ({Math.round(TAX_RATE * 100)}%)</span>
+                  <span>{money(totals.taxCents)}</span>
+                </div>
+                <div className="total__item">
+                  <span>Mailing fee</span>
+                  <span>{money(totals.mailingCents)}</span>
+                </div>
                 <div className="total__item total__price">
                   <span>Total</span>
-                  <span>${total.toFixed(2)}</span>
+                  <span>{money(totals.totalCents)}</span>
                 </div>
                 <button
                   className="btn btn__checkout"

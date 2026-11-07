@@ -3,12 +3,14 @@
 // Prices are recalculated here from the shared pricing module, so the browser
 // can never change what a customer is charged.
 import Stripe from "stripe";
-import { getPrice } from "../src/pricing.mjs";
+import { effectivePrice, getPrice, orderTotals, TAX_RATE, toCents } from "../src/pricing.mjs";
 
 const OMDB_KEY = "25cd594";
 const IMDB_ID = /^tt\d{7,10}$/;
 const MAX_LINE_ITEMS = 50;
 const MAX_QUANTITY = 99;
+// Countries we mail to; add ISO country codes here to ship further.
+const SHIPPING_COUNTRIES = ["US", "CA"];
 
 async function lookupMovie(id) {
   try {
@@ -59,14 +61,13 @@ export default async function handler(req, res) {
   const movies = await Promise.all(entries.map(([id]) => lookupMovie(id)));
 
   const line_items = entries.map(([id, quantity], i) => {
-    const { originalPrice, salePrice } = getPrice(id);
     const movie = movies[i];
     const poster = movie?.Poster?.startsWith("https://") ? [movie.Poster] : undefined;
     return {
       quantity,
       price_data: {
         currency: "usd",
-        unit_amount: Math.round((salePrice || originalPrice) * 100),
+        unit_amount: toCents(effectivePrice(getPrice(id))),
         product_data: {
           name: movie ? `${movie.Title} (${movie.Year})` : `Movie ${id}`,
           ...(poster && { images: poster }),
@@ -76,12 +77,38 @@ export default async function handler(req, res) {
     };
   });
 
+  // Tax and mailing come from the same shared math the cart page shows.
+  const totals = orderTotals(entries.map(([id, quantity]) => ({ id, quantity })));
+  line_items.push({
+    quantity: 1,
+    price_data: {
+      currency: "usd",
+      unit_amount: totals.taxCents,
+      product_data: { name: `Sales tax (${Math.round(TAX_RATE * 100)}%)` },
+    },
+  });
+
   try {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
     const origin = siteOrigin(req);
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       line_items,
+      shipping_address_collection: { allowed_countries: SHIPPING_COUNTRIES },
+      shipping_options: [
+        {
+          shipping_rate_data: {
+            type: "fixed_amount",
+            display_name: "Mailing fee",
+            fixed_amount: { amount: totals.mailingCents, currency: "usd" },
+          },
+        },
+      ],
+      metadata: {
+        subtotal_cents: String(totals.subtotalCents),
+        tax_cents: String(totals.taxCents),
+        mailing_cents: String(totals.mailingCents),
+      },
       success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/cart?canceled=1`,
     });

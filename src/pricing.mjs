@@ -25,6 +25,29 @@ export function getPrice(imdbID) {
 
 export const effectivePrice = (movie) => movie.salePrice || movie.originalPrice;
 
+// ---- Order totals (shared by the cart page and the checkout server) ----
+export const TAX_RATE = 0.1; // 10% sales tax on the movies' subtotal
+export const MAILING_FEE = 4.99; // flat per order
+
+export const toCents = (dollars) => Math.round(dollars * 100);
+
+// items: [{ id, quantity }]. Prices always come from getPrice(), never the caller.
+// All math is in whole cents so the cart and Stripe agree to the penny.
+export function orderTotals(items) {
+  const subtotalCents = items.reduce(
+    (sum, { id, quantity }) => sum + toCents(effectivePrice(getPrice(id))) * quantity,
+    0
+  );
+  const taxCents = Math.round(subtotalCents * TAX_RATE);
+  const mailingCents = subtotalCents > 0 ? toCents(MAILING_FEE) : 0;
+  return {
+    subtotalCents,
+    taxCents,
+    mailingCents,
+    totalCents: subtotalCents + taxCents + mailingCents,
+  };
+}
+
 // IMDb rating ("7.8" out of 10) -> number, or null when unavailable.
 export function parseRating(imdbRating) {
   const n = parseFloat(imdbRating);

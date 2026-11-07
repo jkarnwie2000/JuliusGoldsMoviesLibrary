@@ -9,6 +9,7 @@ const Movies = lazy(() => import("./components/pages/Movies"));
 const MovieInfo = lazy(() => import("./components/pages/MovieInfo"));
 const Cart = lazy(() => import("./components/pages/Cart"));
 const CheckoutSuccess = lazy(() => import("./components/pages/CheckoutSuccess"));
+const Admin = lazy(() => import("./components/pages/Admin"));
 
 const CART_KEY = "jg-movies-cart";
 
@@ -88,6 +89,7 @@ function App() {
               path="/checkout/success"
               element={<CheckoutSuccess clearCart={clearCart} />}
             />
+            <Route path="/admin" element={<Admin />} />
           </Routes>
         </Suspense>
         <Footer />
