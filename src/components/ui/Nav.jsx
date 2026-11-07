@@ -16,7 +16,7 @@ const Nav = ({ numberOfItems }) =>  {
     <nav>
         <div className='nav__container'>
             <Link to='/'>
-            <img src="/assets/moviepagelogo.png" alt="" className='logo' />
+            <img src="/assets/logo.svg" alt="Julius Gold's Movies Library" className="logo" />
             </Link>
             <ul className='nav__links'>
                 <li className='nav__list'>

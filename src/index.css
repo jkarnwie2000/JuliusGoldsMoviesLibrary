@@ -153,7 +153,17 @@ header {
 .header__img--wrapper {
     padding: 20px;
     z-index: 50;
-    max-height: 50vh;
+    display: flex;
+    justify-content: center;
+}
+
+.header__img {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 55vh;
+    border-radius: 24px;
+    box-shadow: 0 24px 60px rgba(27, 20, 48, 0.35), 0 0 0 1px rgba(245, 197, 24, 0.35);
 }
 
 button {
@@ -240,12 +250,10 @@ li {
 }
 
 .logo {
-    border: none;
-    border-color: none;
-    padding-top: 40px;
-    width: 240px;
-    height: 120px;
-    font-size: 110px;    
+    display: block;
+    height: 56px;
+    width: auto;
+    max-width: 60vw;
 }
 
 .container {
@@ -726,8 +734,9 @@ img {
 
 
 .footer__logo--img {
-  width: 320px;
-  height: 140px; 
+  height: 72px;
+  width: auto;
+  max-width: 80vw;
 }
 
 .footer__logo {

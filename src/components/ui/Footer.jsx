@@ -7,7 +7,7 @@ const Footer = () => {
         <div className='row row__column'>
             <a href="/" className='footer__logo'>
             <figure>
-                <img src="/assets/moviepagelogo.png" alt="" className='footer__logo--img'/>
+                <img src="/assets/logo.svg" alt="Julius Gold's Movies Library" className="footer__logo--img" />
             </figure>
             </a>            
             <div className='footer__list'>

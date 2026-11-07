@@ -11,7 +11,7 @@ const Landing = () => {
                     </a>
                 </div>
                 <figure className='header__img--wrapper'>
-                    <img src="/assets/moviesheadersvg.png" alt="" />
+                    <img src="/assets/hero-cinema.svg" alt="Cinema screen framed by red curtains with popcorn and a clapperboard" className="header__img" />
                 </figure>
             </div>
         </header>
