@@ -363,31 +363,12 @@ li {
 
 /*HIGHLIGHTS*/
 
+/* (Removed: empty decorative :before/:after layers left over from the template.
+   They had no image but sat invisibly over the bottom of the hero, blocking
+   clicks on the "Browse Movies" and "Search the library" buttons.) */
 #highlights {
   position: relative;
   max-width: 100vw;
-}
-
-#highlights:after,
-#highlights:before {  
-  content: "";
-  position: absolute;
-  width: 101vw;
-  height: 12vw;
-  left: 0;
-  z-index: 1;
-  background-size: cover;
-  background-repeat: no-repeat;
-}
-
-#highlights:before {
-  transform: translateY(-100%);
-  top: 1px;
-}
-
-#highlights:after {
-  transform: translateY(100%) rotate(180deg);
-  bottom: 1px;  
 }
 
 .highlight__wrapper {
@@ -1198,7 +1179,7 @@ img {
 
 .hero__content {
   position: relative;
-  z-index: 1;
+  z-index: 2; /* keep the buttons above anything that overlaps the hero */
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;

@@ -1,5 +1,16 @@
 import { Link } from "react-router-dom";
 
+// Scroll to the Featured Movies row ourselves rather than relying on the
+// browser's #hash jump, which doesn't always fire in a single-page app.
+function scrollToFeatured(e) {
+  const target = document.getElementById("features");
+  if (!target) return; // fall back to the normal link behavior
+  e.preventDefault();
+  const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+  window.history.replaceState(window.history.state, "", "#features");
+}
+
 const Landing = () => {
   return (
     <section id="landing" className="hero">
@@ -24,7 +35,7 @@ const Landing = () => {
           animated classics, all at prices everyone will love.
         </p>
         <div className="hero__actions">
-          <a href="#features" className="btn hero__btn">
+          <a href="#features" className="btn hero__btn" onClick={scrollToFeatured}>
             Browse Movies
           </a>
           <Link to="/movies" className="hero__btn--ghost">
