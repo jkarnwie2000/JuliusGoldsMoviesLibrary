@@ -2,7 +2,7 @@
 
 ## React Film App Screenshot
 
-![React Film App Screenshot](./reactfilmproject.png)
+![React Film App Screenshot](./‎reactfilmproject.png)
 
 ## 🛠️ Tech Stack
 
