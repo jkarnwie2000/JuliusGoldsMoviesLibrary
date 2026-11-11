@@ -2079,3 +2079,17 @@ img {
     animation: none;
   }
 }
+
+/* Cart placeholder for movies without a poster */
+.cart__movie--noimg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 90px;
+  height: 128px;
+  border-radius: 4px;
+  background: linear-gradient(160deg, #1b1430, #0b0810);
+  color: #f5c518;
+  font-size: 28px;
+  flex-shrink: 0;
+}

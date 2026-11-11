@@ -68,7 +68,13 @@ const Cart = ({ cart, changeQuantity, removeItem }) => {
                 {cart.map((movie) => (
                   <div className="cart__item" key={movie.id}>
                     <div className="cart__movie">
-                      <img src={movie.Poster} className="cart__movie--img" alt="" />
+                      {movie.Poster && movie.Poster !== "N/A" ? (
+                        <img src={movie.Poster} className="cart__movie--img" alt="" />
+                      ) : (
+                        <div className="cart__movie--img cart__movie--noimg" aria-hidden="true">
+                          <FontAwesomeIcon icon="compact-disc" />
+                        </div>
+                      )}
                       <div className="cart__movie--info">
                         <Link to={`/movies/${movie.id}`} className="cart__movie--title">
                           {movie.Title}

@@ -20,7 +20,7 @@ const Landing = () => {
         srcSet="/assets/family-movie-night-960.jpg 960w, /assets/family-movie-night-1920.jpg 1920w"
         sizes="100vw"
         alt="A family and their dog on the couch, watching a movie together"
-        fetchpriority="high"
+        fetchPriority="high"
         decoding="async"
       />
       <div className="hero__overlay" aria-hidden="true" />

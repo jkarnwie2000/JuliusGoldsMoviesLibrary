@@ -98,7 +98,7 @@ function App() {
   }, [cart, addToCart, setQuantity, toast]);
 
   return (
-    <Router>
+    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <ScrollToTop />
       <CartContext.Provider value={cartContext}>
       <div className="App">
