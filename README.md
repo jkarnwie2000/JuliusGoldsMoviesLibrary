@@ -38,330 +38,199 @@
 
 A React platform that helps movie lovers discover and buy their favorite films.
 
-# Installation and Setup Guide
+Written for: developers setting up the project locally on Windows (e.g. a README "Getting Started" section).
 
-Follow these instructions to install, configure, build, and run the React Movie E-commerce Project locally on a Windows machine.
+Two things I found while checking that change the setup:
+1. **Node 20.9 is too old for the Vitest tests.** Vitest uses Vite 7.3.1, which needs Node 20.19 or newer. The site and the React tests run on 20.9, but `npm run test:unit` won't. The steps below use Node 22 LTS.
+2. **The project has no `.env.example` or `.vscode/launch.json`.** Both are written out below so you can create them.
+
+---
+
+# Running Julius Gold's Movies Library locally
+
+The project has two parts:
+- a React front end (Create React App) in `src/`
+- serverless API functions in `api/`, which handle movie data, Stripe checkout, emails and admin sign-in
+
+`npm start` runs only the front end. To run **both** locally, use the Vercel CLI (`vercel dev`).
 
 ## 1. Prerequisites
 
-Before getting started, ensure the following software is installed on your computer.
-
-### Required Software
-
-| Software | Recommended Version | Purpose |
+| Tool | Version | Install |
 |---|---|---|
-| Node.js | 20.9 or higher (Node 20.x) | JavaScript runtime |
-| npm | Included with Node.js | Package management |
-| Visual Studio Code | Latest version | Code editor |
-| Git | Latest version | Version control |
+| Node.js | **22 LTS** (or 20.19+) | https://nodejs.org (includes npm) |
+| Git | any recent | https://git-scm.com |
+| Vercel CLI | latest | `npm install -g vercel` |
+| VS Code | latest | https://code.visualstudio.com |
+| Stripe CLI (optional, for order emails) | latest | `winget install Stripe.StripeCli` |
 
-### Verify Your Installations
+You'll also need free accounts for the keys in step 3: [OMDb](https://www.omdbapi.com/apikey.aspx), [Stripe](https://dashboard.stripe.com) (test mode), [Resend](https://resend.com) and [Vercel](https://vercel.com).
 
-Open the VS Code integrated terminal (`Ctrl + ``) or Windows PowerShell and execute:
+Check the installs in a terminal (PowerShell or VS Code's terminal):
 
-**Check Node.js:**
-```bash
-node --version
+```powershell
+node -v      # v22.x or v20.19+
+npm -v
+vercel --version
 ```
 
-**Check npm:**
-```bash
-npm --version
-```
+## 2. Install dependencies
 
-**Check Git:**
-```bash
-git --version
-```
-
-Ensure Node.js reports version `v20.9.0` or a compatible later Node 20 release.
-
-If Node.js is not installed, download it from:
-
-https://nodejs.org/
-
-## 2. Clone or Download the Repository
-
-If you are using Git, open your terminal and clone the repository:
-
-```bash
-git clone YOUR_REPOSITORY_URL
-```
-
-Navigate into the project directory:
-
-```bash
-cd YOUR_PROJECT_DIRECTORY
-```
-
-Alternatively, download the repository as a ZIP file from GitHub, extract it, and open the extracted folder in Visual Studio Code.
-
-## 3. Install Project Dependencies
-
-The project includes a `package.json` file and a `package-lock.json` file.
-
-These files define the project's dependencies and ensure consistent installations.
-
-From the project's root directory, execute:
-
-```bash
+```powershell
+git clone https://github.com/jkarnwie2000/ReactFilmApp.git
+cd ReactFilmApp
 npm ci
 ```
 
-This command installs the exact dependency versions recorded in `package-lock.json`.
+`npm ci` installs the exact versions in `package-lock.json`. Use `npm install` only if you're changing dependencies.
 
-**Important:** Use `npm ci` rather than `npm install` when setting up the project from scratch. This helps ensure reproducible installations without unnecessarily changing the lockfile.
+## 3. Configure environment variables
 
-If you encounter dependency installation problems, try:
+Create a file named **`.env.local`** in the project root. It's already ignored by Git and never uploaded to Vercel. Paste in this template and fill in your own values:
 
-```bash
-npm install
+```dotenv
+# --- Movie data (required) ---
+OMDB_API_KEY=your_omdb_key
+
+# --- Payments (required for checkout) — use a TEST key locally ---
+STRIPE_SECRET_KEY=sk_test_...
+
+# --- Where Stripe sends shoppers back to after paying ---
+SITE_URL=http://localhost:3000
+
+# --- Order + verification emails (required for emails and admin sign-up) ---
+RESEND_API_KEY=re_...
+BUSINESS_EMAIL=you@example.com
+# EMAIL_FROM=Julius Gold's Movies <orders@yourdomain.com>   # optional; needs a verified Resend domain
+
+# --- Admin accounts (required for /admin) ---
+SESSION_SECRET=a_long_random_string
+BLOB_READ_WRITE_TOKEN=vercel_blob_rw_...
+# ADMIN_EMAILS=you@example.com,partner@example.com          # optional; overrides BUSINESS_EMAIL
 ```
 
-## 4. Configure Environment Variables
+| Variable | Needed for | Where to get it |
+|---|---|---|
+| `OMDB_API_KEY` | All movie data | OMDb sends it by email; click the activation link in that email |
+| `STRIPE_SECRET_KEY` | Checkout, admin dashboard | Stripe Dashboard → Developers → API keys (test mode) |
+| `SITE_URL` | Checkout return links | `http://localhost:3000` locally |
+| `RESEND_API_KEY` | All emails | Resend → API Keys |
+| `BUSINESS_EMAIL` | Order alerts; approved admin email | Your email (use the one your Resend account is registered with) |
+| `SESSION_SECRET` | Admin sign-in | Generate: `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"` |
+| `BLOB_READ_WRITE_TOKEN` | Admin accounts | Vercel → Storage → create a **private** Blob store → copy its token |
 
-The project contains backend API endpoints under the `api/` directory.
+Notes:
+- **Use a separate Blob store for local work.** Pointing local development at the live site's store would read and write the real admin accounts.
+- **`vercel env pull` won't fill these in.** Variables marked Secret in Vercel come back empty when pulled, so enter them in `.env.local` by hand.
+- **Resend's limit before you verify a domain:** without a verified domain, Resend only delivers to the email address your Resend account uses.
 
-These endpoints indicate that the application has server-side functionality for authentication, checkout, order management, email notifications, and Stripe payment processing.
+## 4. Run in development mode
 
-You may need environment variables to connect these services.
+**Option A: the full site (recommended)**
 
-### Step 1: Check for an Environment Example File
-
-Look in the project's root directory for:
-
-```text
-.env.example
+```powershell
+vercel link      # first time only: choose your Vercel account and this project
+vercel dev
 ```
 
-If this file exists, create a local environment file:
+Open **http://localhost:3000**. `vercel dev` starts the React dev server and the `/api` functions together, and reads `.env.local`.
 
-```bash
-copy .env.example .env
-```
+**Option B: front end only**
 
-If the application uses a particular environment-file naming convention, follow the requirements of its framework and configuration.
-
-### Step 2: Configure Your API Credentials
-
-Depending on the implementation, the backend may require credentials for:
-
-- Stripe: Payment processing and webhook verification.
-- OMDb API: Movie information and search functionality.
-- Email provider: Transactional emails and order confirmations.
-- Authentication: Session management, authentication secrets, or token signing.
-
-**Important:** The exact environment variable names cannot be established from the directory structure alone. Check `.env.example`, `api/` configuration files, and the relevant source code for the required names.
-
-Do not commit `.env` files or expose private API credentials in your GitHub repository.
-
-Add the following to `.gitignore` if they are not already excluded:
-
-```gitignore
-.env
-.env.local
-.env.*.local
-```
-
-## 5. Run the Application in Development Mode
-
-Once the dependencies have been installed and the environment variables configured, you can start the application.
-
-### Step 1: Open the VS Code Terminal
-
-Navigate to:
-
-**Terminal → New Terminal**
-
-Ensure the terminal is located in the project's root directory.
-
-### Step 2: Check Available Scripts
-
-Run:
-
-```bash
-npm run
-```
-
-This displays the scripts configured in `package.json`.
-
-### Step 3: Start the Development Server
-
-If the project uses Create React App, execute:
-
-```bash
+```powershell
 npm start
 ```
 
-If the project uses Vite, execute:
+This is quick for styling work, but movie data, checkout and `/admin` won't load, because they need the `/api` functions.
 
-```bash
-npm run dev
+**Testing payments and order emails locally:**
+- Pay with Stripe's test card `4242 4242 4242 4242`, any future expiry date and any CVC.
+- Stripe can't reach `localhost`, so to trigger the order emails, forward its notifications in a second terminal:
+
+```powershell
+stripe login
+stripe listen --forward-to localhost:3000/api/stripe-webhook
 ```
 
-If the project uses Vercel CLI for its serverless API endpoints and has the appropriate development script configured, you may need:
+**Running the tests:**
 
-```bash
-npx vercel dev
+```powershell
+npm run test:all     # both suites
+npm run test:ui      # React Testing Library (Jest), src/**/*.test.jsx
+npm run test:unit    # Vitest (needs Node 20.19+), tests/**/*.test.mjs
+npm test             # React tests in watch mode
 ```
 
-The appropriate command depends on the scripts defined in `package.json`.
+**Production build:**
 
-### Step 4: Open the Application
-
-Once the development server starts, open the local URL displayed in your terminal.
-
-Common development URLs include:
-
-```text
-http://localhost:3000
+```powershell
+npm run build        # output in /build
 ```
 
-or:
+## 5. Launch and debug in VS Code
 
-```text
-http://localhost:5173
-```
+Create **`.vscode/launch.json`** with the configurations below, then open **Run and Debug** (`Ctrl+Shift+D`), pick a configuration and press **F5**.
 
-The actual address depends on the development server configuration.
-
-## 6. Build the Project for Production
-
-To create an optimized production build, execute the appropriate build script defined in `package.json`.
-
-For example:
-
-```bash
-npm run build
-```
-
-This generates an optimized version of the application for deployment.
-
-Depending on the build tool:
-
-- Create React App generates a `build/` directory.
-- Vite generates a `dist/` directory.
-
-The generated production files should be used for deployment rather than the development server.
-
-## 7. Run the Tests
-
-The project includes automated tests using Vitest.
-
-The test configuration is located in:
-
-```text
-vitest.config.mjs
-```
-
-The project also includes test files covering:
-
-- API handlers
-- Authentication
-- Orders and email functionality
-- Pricing calculations
-- React components
-- Checkout functionality
-
-### Run the Test Suite
-
-To execute all tests:
-
-```bash
-npx vitest run
-```
-
-### Run Tests in Watch Mode
-
-To automatically rerun tests when files change:
-
-```bash
-npx vitest
-```
-
-### Run Tests with Coverage
-
-If the project has the Vitest coverage provider installed:
-
-```bash
-npx vitest run --coverage
-```
-
-## 8. Running and Debugging Through Visual Studio Code
-
-Visual Studio Code includes a built-in JavaScript debugger that supports Node.js and browser-based debugging.
-
-### Step 1: Open the Project
-
-Open the project folder in VS Code.
-
-### Step 2: Access the Run and Debug Panel
-
-Click the Run and Debug icon in the left sidebar or press:
-
-```text
-Ctrl + Shift + D
-```
-
-### Step 3: Configure Browser Debugging
-
-If the project does not already contain a `.vscode/launch.json` file, create the following directory and file:
-
-```text
-.vscode/
-└── launch.json
-```
-
-For a development server running on `localhost:3000`, use:
-
-```json
+```jsonc
 {
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Launch React Application",
-      "type": "chrome",
+      "name": "Full stack: vercel dev",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "vercel dev",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Front end: Edge",
+      "type": "msedge",
       "request": "launch",
       "url": "http://localhost:3000",
       "webRoot": "${workspaceFolder}/src"
+    },
+    {
+      "name": "Tests: React Testing Library (Jest)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npx react-scripts test --runInBand --watchAll=false",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Tests: Vitest",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npx vitest run",
+      "cwd": "${workspaceFolder}"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Debug full stack (server + browser)",
+      "configurations": ["Full stack: vercel dev", "Front end: Edge"],
+      "stopAll": true
     }
   ]
 }
 ```
 
-This configuration assumes the VS Code JavaScript Debugger extension supports the `chrome` debugger type.
+How to use them:
+- **Debug full stack (server + browser):** starts `vercel dev` with the debugger attached and opens Edge.
+  - Breakpoints in `api/*.mjs` pause the server code.
+  - Breakpoints in `src/*.jsx` pause the browser code.
+  - Edge may open before the dev server is ready; refresh once it's up.
+- **Tests:** set a breakpoint in any test file, then run the matching test configuration. `--runInBand` keeps Jest in one process so its breakpoints work.
+- **Chrome instead of Edge:** change `"type": "msedge"` to `"type": "chrome"`.
 
-If your application runs on another port, update the URL accordingly.
+## Troubleshooting
 
-### Step 4: Start the Development Server
+| Symptom | Fix |
+|---|---|
+| `npm run test:unit` fails with an engine or syntax error | Upgrade Node to 20.19+ or 22 LTS |
+| "Something went wrong" on the Movies page | Check that `OMDB_API_KEY` is set and activated, and that you're using `vercel dev`, not `npm start` |
+| Admin sign-up says it couldn't send the code | Check `RESEND_API_KEY`, and use the email your Resend account is registered with |
+| `EPERM` errors on `build/` | OneDrive is locking files; pause OneDrive syncing or move the project out of OneDrive |
 
-Open a terminal and execute the appropriate development command:
+---
 
-```bash
-npm start
-```
-
-### Step 5: Start Debugging
-
-1. Open the Run and Debug panel.
-2. Select `Launch React Application`.
-3. Click the green Start Debugging button.
-4. VS Code will launch the application in Chrome.
-5. Set breakpoints in your React components or JavaScript files.
-6. Inspect variables, execution flow, and errors using the debugger.
-
-### Debugging Backend API Endpoints
-
-The project also contains Node.js API handlers.
-
-These can be debugged using VS Code's Node.js debugger.
-
-For example, if you run the backend development server with a Node.js process that supports the inspector, you can attach VS Code to it using a separate Node.js debugging configuration.
-
-The exact configuration depends on how the API endpoints are executed.
-
-## 9. Project Structure Overview
-
-The project is organized into the following major directories:
-
-|# final-react-movies-project
+I can also add the `.env.example` file and `.vscode/launch.json` to the repo, so these instructions point to real files.
