@@ -77,8 +77,8 @@ vercel --version
 ## 2. Install dependencies
 
 ```powershell
-git clone https://github.com/jkarnwie2000/ReactFilmApp.git
-cd ReactFilmApp
+git clone https://github.com/jkarnwie2000/JuliusGoldsMoviesLibrary.git
+cd JuliusGoldsMoviesLibrary
 npm ci
 ```
 
