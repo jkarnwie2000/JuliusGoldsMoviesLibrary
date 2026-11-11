@@ -38,10 +38,6 @@
 
 A React platform that helps movie lovers discover and buy their favorite films.
 
-## React Film App Run Instructions
-
-A full-stack React movie store with Vercel serverless functions. Shoppers can browse, search, add movies to a cart and check out with Stripe, and an admin dashboard tracks sales. Tested with React Testing Library and Vitest.
-
 # Installation and Setup Guide
 
 Follow these instructions to install, configure, build, and run the React Movie E-commerce Project locally on a Windows machine.
