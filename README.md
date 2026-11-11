@@ -36,7 +36,7 @@
 
 🔗 **Live Demo:** [View Live Website](https://final-react-movies-projectcrimsongo.vercel.app/)
 
-A React application that allows users to search for movies.
+A React platform that helps movie lovers discover and buy their favorite films.
 
 ## React Film App Run Instructions
 
