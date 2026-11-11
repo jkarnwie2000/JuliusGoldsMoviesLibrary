@@ -1,6 +1,6 @@
 </> Markdown
 
-## React Film App Screenshot
+## Julius Golds Movies Library Screenshot
 
 ![React Film App Screenshot](./‎reactfilmproject.png)
 
@@ -32,7 +32,7 @@
 * 📱 Responsive design for phones, tablets, and desktops
 * ✨ Smooth slide-up animations when opening a movie
 
-## React Film App
+## Julius Golds Movies Library App
 
 🔗 **Live Demo:** [View Live Website](https://final-react-movies-projectcrimsongo.vercel.app/)
 
