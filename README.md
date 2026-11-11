@@ -42,567 +42,330 @@ A React platform that helps movie lovers discover and buy their favorite films.
 
 A full-stack React movie store with Vercel serverless functions. Shoppers can browse, search, add movies to a cart and check out with Stripe, and an admin dashboard tracks sales. Tested with React Testing Library and Vitest.
 
-## Prerequisites
+# Installation and Setup Guide
 
-Before installing the project, ensure that the following software is installed on your computer.
+Follow these instructions to install, configure, build, and run the React Movie E-commerce Project locally on a Windows machine.
 
-### 1. Install Node.js
+## 1. Prerequisites
 
-Node.js provides the JavaScript runtime required to run the development server and build the application.
+Before getting started, ensure the following software is installed on your computer.
 
-Download and install Node.js from the official website:
+### Required Software
 
-https://nodejs.org/
+| Software | Recommended Version | Purpose |
+|---|---|---|
+| Node.js | 20.9 or higher (Node 20.x) | JavaScript runtime |
+| npm | Included with Node.js | Package management |
+| Visual Studio Code | Latest version | Code editor |
+| Git | Latest version | Version control |
 
-Choose an appropriate supported LTS version for your project.
+### Verify Your Installations
 
-After installation, open your terminal and verify that Node.js and npm are available:
+Open the VS Code integrated terminal (`Ctrl + ``) or Windows PowerShell and execute:
 
+**Check Node.js:**
 ```bash
-node -v
-npm -v
+node --version
 ```
 
-Both commands should display version numbers.
+**Check npm:**
+```bash
+npm --version
+```
 
-If either command fails, restart your terminal and check that Node.js was added to your system's PATH.
-
-### 2. Install Git
-
-Git is recommended for cloning the repository and managing project changes.
-
-Download Git from:
-
-https://git-scm.com/downloads
-
-Verify the installation:
-
+**Check Git:**
 ```bash
 git --version
 ```
 
-If you already downloaded the project as a ZIP file, you can skip Git installation for now.
+Ensure Node.js reports version `v20.9.0` or a compatible later Node 20 release.
 
-### 3. Install a Code Editor
+If Node.js is not installed, download it from:
 
-Visual Studio Code is recommended for editing and running the project.
+https://nodejs.org/
 
-Download it from:
+## 2. Clone or Download the Repository
 
-https://code.visualstudio.com/
-
-## Local Installation and Setup
-
-Follow these steps to install and run the React Film App on your computer.
-
-### Step 1: Get the Project
-
-Clone your repository using Git:
+If you are using Git, open your terminal and clone the repository:
 
 ```bash
 git clone YOUR_REPOSITORY_URL
 ```
 
-Replace `YOUR_REPOSITORY_URL` with your actual Git repository URL.
-
 Navigate into the project directory:
 
 ```bash
-cd YOUR_PROJECT_FOLDER
+cd YOUR_PROJECT_DIRECTORY
 ```
 
-Replace `YOUR_PROJECT_FOLDER` with the actual folder name created when you cloned the repository.
+Alternatively, download the repository as a ZIP file from GitHub, extract it, and open the extracted folder in Visual Studio Code.
 
-**Alternatively:** If you downloaded the project as a ZIP file, extract it and open the extracted project folder in Visual Studio Code.
+## 3. Install Project Dependencies
 
-### Step 2: Open the Project in Visual Studio Code
+The project includes a `package.json` file and a `package-lock.json` file.
 
-If you are already inside the project directory, run:
+These files define the project's dependencies and ensure consistent installations.
 
-```bash
-code .
-```
-
-Alternatively, open Visual Studio Code manually and select **File → Open Folder**, then choose the React Film App project directory.
-
-Ensure that the project root contains these files:
-
-```text
-React-Film-App/
-├── public/
-├── src/
-├── package.json
-├── package-lock.json
-└── README.md
-```
-
-### Step 3: Install Dependencies
-
-Open the integrated terminal in Visual Studio Code by selecting:
-
-**Terminal → New Terminal**
-
-Ensure that the terminal is positioned in the project root directory, where `package.json` is located.
-
-Run:
-
-```bash
-npm install
-```
-
-This command installs the dependencies declared in `package.json`.
-
-Because the project includes `package-lock.json`, you can also use the following command for a reproducible installation when the lockfile is synchronized with `package.json`:
+From the project's root directory, execute:
 
 ```bash
 npm ci
 ```
 
-Use `npm ci` for a clean installation when you do not need to preserve changes to installed dependencies. It removes the existing `node_modules` directory before installing the locked dependencies.
+This command installs the exact dependency versions recorded in `package-lock.json`.
 
-If installation fails, review the error message before trying another command.
+**Important:** Use `npm ci` rather than `npm install` when setting up the project from scratch. This helps ensure reproducible installations without unnecessarily changing the lockfile.
 
-### Step 4: Configure Environment Variables
-
-If the application uses a REST API that requires an API key or base URL, configure the necessary environment variables before starting the application.
-
-Create a file named `.env` in the project root, alongside `package.json`.
-
-Example for a Create React App project:
-
-```env
-REACT_APP_API_BASE_URL=https://api.example.com
-REACT_APP_API_KEY=your_api_key_here
-```
-
-**Important:**
-
-* Replace the example URL with the actual REST API endpoint used by the application.
-* Replace the placeholder API key with a valid key if your API requires one.
-* Do not commit secret credentials to a public repository.
-* Environment variable names must match those referenced in your source code.
-* For Create React App, browser-accessible custom environment variables must begin with `REACT_APP_`.
-* If your project uses Vite instead, custom client-side variables normally use the `VITE_` prefix and are accessed through `import.meta.env`.
-
-The supplied project structure does not identify the API provider or confirm that an API key is required. Check `src/data.js`, `src/App.js`, and `package.json` to determine the actual configuration.
-
-If the application does not use environment variables, you can skip this step.
-
-After changing environment variables, restart the development server.
-
-### Step 5: Start the Development Server
-
-For a standard Create React App project, run:
-
-```bash
-npm start
-```
-
-The development server should start, and the application will usually be available at:
-
-http://localhost:3000
-
-If the browser does not open automatically, copy the address into your browser.
-
-Keep the terminal running while you use the application. To stop the development server, press:
-
-```text
-Ctrl + C
-```
-
-**Note:** The command `npm start` assumes that your `package.json` defines a `start` script. If it does not, inspect the available scripts before proceeding.
-
-## Running the Project in Production Mode
-
-A production build creates optimized static files that can be deployed to a compatible web server or hosting platform.
-
-### Step 1: Build the Application
-
-For a standard Create React App project, run:
-
-```bash
-npm run build
-```
-
-The production build will normally be generated in a directory named:
-
-```text
-build/
-```
-
-This directory contains the optimized application files.
-
-If the build fails, review the terminal output and fix any compilation errors before deploying.
-
-### Step 2: Preview or Test the Production Build
-
-Create React App does not provide a universal built-in production preview command.
-
-You can use a static server to serve the generated files locally. For example, with Node.js and npm installed, run:
-
-```bash
-npx serve -s build
-```
-
-If prompted to install the `serve` package, review the prompt and approve it if appropriate.
-
-The terminal will display the local address where the production build is being served.
-
-Open that address in your browser to test the production version.
-
-This command is a local preview method, not a replacement for deploying the application to a production hosting service.
-
-### Step 3: Deploy the Application
-
-After confirming that the production build works, deploy the generated static files to a hosting platform that supports React single-page applications.
-
-Examples include:
-
-* GitHub Pages
-* Netlify
-* Vercel
-
-Configure the hosting platform to serve the generated build output and redirect application routes to `index.html` if your routing setup requires it.
-
-**Important:** If the application fetches data from an external REST API, verify that the deployed site can reach the API and that the API permits requests from your deployed domain.
-
-## Available npm Commands
-
-For a standard Create React App project, the following commands are commonly available:
-
-| Command         | Description                                                               |
-| --------------- | ------------------------------------------------------------------------- |
-| `npm install`   | Installs project dependencies.                                            |
-| `npm ci`        | Performs a clean dependency installation using the lockfile.              |
-| `npm start`     | Starts the development server.                                            |
-| `npm run build` | Creates an optimized production build.                                    |
-| `npm test`      | Runs the configured test suite.                                           |
-| `npm run eject` | Exposes the underlying build configuration in a Create React App project. |
-
-The commands listed above depend on the scripts defined in `package.json`. Check your project's actual scripts before using them.
-
-**Warning:** The `npm run eject` command is generally irreversible. Do not run it unless you understand why you need to expose and manage the underlying build configuration.
-
-To inspect your available npm scripts, run:
-
-```bash
-npm run
-```
-
-## Troubleshooting
-
-### 1. `npm` Is Not Recognized
-
-**Possible cause:** Node.js is not installed correctly, or npm is missing from your system's PATH.
-
-**Solution:**
-
-1. Install or reinstall a supported Node.js LTS release.
-2. Close and reopen your terminal.
-3. Verify the installation:
-
-```bash
-node -v
-npm -v
-```
-
-### 2. Missing Module or Dependency Errors
-
-Example:
-
-```text
-Module not found: Error: Can't resolve 'some-package'
-```
-
-**Possible causes:**
-
-* Dependencies have not been installed.
-* A required package is missing from `package.json`.
-* An import path is incorrect.
-* The imported file does not exist at the specified location.
-
-**Solution:**
-
-First, install the declared dependencies:
+If you encounter dependency installation problems, try:
 
 ```bash
 npm install
 ```
 
-If the error refers to a local file or image, verify that the file exists and that the import path is correct.
+## 4. Configure Environment Variables
 
-For example, assets stored in `public/assets/` can generally be referenced in JSX using paths such as:
+The project contains backend API endpoints under the `api/` directory.
 
-```jsx
-<img src="/assets/Fast Five.jpg" alt="Fast Five movie poster" />
+These endpoints indicate that the application has server-side functionality for authentication, checkout, order management, email notifications, and Stripe payment processing.
+
+You may need environment variables to connect these services.
+
+### Step 1: Check for an Environment Example File
+
+Look in the project's root directory for:
+
+```text
+.env.example
 ```
 
-For filenames containing spaces, use the exact filename and URL-encode spaces if needed:
+If this file exists, create a local environment file:
 
-```jsx
-<img
-  src="/assets/2%20Fast%202%20Furious.jpg"
-  alt="2 Fast 2 Furious movie poster"
-/>
+```bash
+copy .env.example .env
 ```
 
-Alternatively, rename asset files to simpler names without spaces and update their references.
+If the application uses a particular environment-file naming convention, follow the requirements of its framework and configuration.
 
-### 3. The Development Server Will Not Start
+### Step 2: Configure Your API Credentials
 
-**Possible causes:**
+Depending on the implementation, the backend may require credentials for:
 
-* Dependencies are missing.
-* Port 3000 is already in use.
-* A compilation error prevents the application from starting.
-* The project does not define a `start` script.
+- Stripe: Payment processing and webhook verification.
+- OMDb API: Movie information and search functionality.
+- Email provider: Transactional emails and order confirmations.
+- Authentication: Session management, authentication secrets, or token signing.
 
-**Solution:**
+**Important:** The exact environment variable names cannot be established from the directory structure alone. Check `.env.example`, `api/` configuration files, and the relevant source code for the required names.
 
-Check the available scripts:
+Do not commit `.env` files or expose private API credentials in your GitHub repository.
+
+Add the following to `.gitignore` if they are not already excluded:
+
+```gitignore
+.env
+.env.local
+.env.*.local
+```
+
+## 5. Run the Application in Development Mode
+
+Once the dependencies have been installed and the environment variables configured, you can start the application.
+
+### Step 1: Open the VS Code Terminal
+
+Navigate to:
+
+**Terminal → New Terminal**
+
+Ensure the terminal is located in the project's root directory.
+
+### Step 2: Check Available Scripts
+
+Run:
 
 ```bash
 npm run
 ```
 
-Then review the terminal output for the specific error.
+This displays the scripts configured in `package.json`.
 
-If port 3000 is already in use, you may be prompted to run the application on another available port.
+### Step 3: Start the Development Server
 
-### 4. Movie Data Is Not Displaying
+If the project uses Create React App, execute:
 
-**Possible causes:**
-
-* The REST API endpoint is incorrect.
-* The API key is missing or invalid.
-* The network request is failing.
-* The API response has a different structure than the application expects.
-* The API has rate limits or access restrictions.
-
-**Solution:**
-
-1. Open your browser's Developer Tools.
-2. Select the **Network** tab.
-3. Reload the application.
-4. Inspect the API requests and their HTTP status codes.
-5. Check the Console tab for JavaScript errors.
-6. Verify the endpoint, API configuration, and expected response structure.
-
-If the API requires a key, ensure that it is configured correctly.
-
-Never place private server-side credentials in client-side React code. Environment variables embedded in a browser build are not secret.
-
-### 5. Movie Images Are Not Displaying
-
-**Possible causes:**
-
-* The image filename is incorrect.
-* The image is stored in a different directory.
-* The path contains spaces or special characters.
-* The API returns an invalid or unavailable image URL.
-
-**Solution:**
-
-Check that the file exists in the expected directory.
-
-For an image stored in `public/assets/`, use a root-relative path:
-
-```jsx
-<img
-  src="/assets/moviepagelogo.png"
-  alt="Movie application logo"
-/>
+```bash
+npm start
 ```
 
-For an image stored inside `src/`, use a suitable relative import:
+If the project uses Vite, execute:
 
-```jsx
-import backgroundImage from "./components/images/backgroundjpeg.jpg";
+```bash
+npm run dev
 ```
 
-Adjust the relative path to match the location of the component importing the image.
+If the project uses Vercel CLI for its serverless API endpoints and has the appropriate development script configured, you may need:
 
-### 6. Environment Variables Are Not Working
-
-**Possible causes:**
-
-* The variable name does not match the name used in the code.
-* The `.env` file is in the wrong directory.
-* The variable uses the wrong prefix for the build tool.
-* The development server was not restarted.
-
-**Solution:**
-
-1. Confirm that `.env` is in the project root.
-2. Check the variable names against the source code.
-3. Verify whether the project uses Create React App or Vite.
-4. Restart the development server.
-
-For Create React App, a variable might be accessed as follows:
-
-```javascript
-const apiUrl = process.env.REACT_APP_API_BASE_URL;
+```bash
+npx vercel dev
 ```
 
-For Vite, a variable might instead be accessed as follows:
+The appropriate command depends on the scripts defined in `package.json`.
 
-```javascript
-const apiUrl = import.meta.env.VITE_API_BASE_URL;
+### Step 4: Open the Application
+
+Once the development server starts, open the local URL displayed in your terminal.
+
+Common development URLs include:
+
+```text
+http://localhost:3000
 ```
 
-Use only the approach appropriate for your project's build tool.
+or:
 
-### 7. Changes Are Not Appearing in the Browser
+```text
+http://localhost:5173
+```
 
-**Solution:**
+The actual address depends on the development server configuration.
 
-1. Save your files.
-2. Check the terminal for compilation errors.
-3. Refresh the browser.
-4. If necessary, restart the development server.
+## 6. Build the Project for Production
 
-For persistent display issues, clear the browser cache or perform a hard refresh.
+To create an optimized production build, execute the appropriate build script defined in `package.json`.
 
-### 8. The Production Build Fails
-
-Run:
+For example:
 
 ```bash
 npm run build
 ```
 
-Review the error output and check for:
+This generates an optimized version of the application for deployment.
 
-* Incorrect import paths.
-* Missing dependencies.
-* Undefined variables.
-* Invalid JSX syntax.
-* Case mismatches in filenames.
-* Missing environment variables.
+Depending on the build tool:
 
-Fix the reported issues and rebuild the application.
+- Create React App generates a `build/` directory.
+- Vite generates a `dist/` directory.
 
-## Project Structure
+The generated production files should be used for deployment rather than the development server.
+
+## 7. Run the Tests
+
+The project includes automated tests using Vitest.
+
+The test configuration is located in:
 
 ```text
-React-Film-App/
-├── public/
-│   ├── assets/
-│   │   ├── movie posters and images
-│   │   └── other static assets
-│   ├── index.html
-│   ├── favicon.ico
-│   └── manifest.json
-├── src/
-│   ├── components/
-│   │   ├── images/
-│   │   ├── pages/
-│   │   │   ├── Cart.jsx
-│   │   │   ├── Home.jsx
-│   │   │   ├── MovieInfo.jsx
-│   │   │   └── Movies.jsx
-│   │   └── ui/
-│   │       ├── Discounted.jsx
-│   │       ├── Explore.jsx
-│   │       ├── Featured.jsx
-│   │       ├── Footer.jsx
-│   │       ├── Highlight.jsx
-│   │       ├── Highlights.jsx
-│   │       ├── Landing.jsx
-│   │       ├── Movie.jsx
-│   │       ├── Nav.jsx
-│   │       ├── Price.jsx
-│   │       └── Rating.jsx
-│   ├── App.js
-│   ├── data.js
-│   ├── index.css
-│   ├── index.js
-│   └── logo.svg
-├── package.json
-├── package-lock.json
-└── README.md
+vitest.config.mjs
 ```
 
-## Contributing
+The project also includes test files covering:
 
-Contributions and suggestions are welcome.
+- API handlers
+- Authentication
+- Orders and email functionality
+- Pricing calculations
+- React components
+- Checkout functionality
 
-To contribute:
+### Run the Test Suite
 
-1. Fork the repository.
-2. Create a feature branch.
-3. Make your changes.
-4. Test the application.
-5. Submit a pull request describing your changes.
+To execute all tests:
 
-## Getting Started with Create React App
+```bash
+npx vitest run
+```
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+### Run Tests in Watch Mode
 
-## Available Scripts
+To automatically rerun tests when files change:
 
-In the project directory, you can run:
+```bash
+npx vitest
+```
 
-### `npm start`
+### Run Tests with Coverage
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+If the project has the Vitest coverage provider installed:
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+```bash
+npx vitest run --coverage
+```
 
-### `npm test`
+## 8. Running and Debugging Through Visual Studio Code
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Visual Studio Code includes a built-in JavaScript debugger that supports Node.js and browser-based debugging.
 
-### `npm run build`
+### Step 1: Open the Project
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Open the project folder in VS Code.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Step 2: Access the Run and Debug Panel
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Click the Run and Debug icon in the left sidebar or press:
 
-### `npm run eject`
+```text
+Ctrl + Shift + D
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### Step 3: Configure Browser Debugging
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+If the project does not already contain a `.vscode/launch.json` file, create the following directory and file:
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+```text
+.vscode/
+└── launch.json
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+For a development server running on `localhost:3000`, use:
 
-## Learn More
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch React Application",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}/src"
+    }
+  ]
+}
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+This configuration assumes the VS Code JavaScript Debugger extension supports the `chrome` debugger type.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+If your application runs on another port, update the URL accordingly.
 
-### Code Splitting
+### Step 4: Start the Development Server
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+Open a terminal and execute the appropriate development command:
 
-### Analyzing the Bundle Size
+```bash
+npm start
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+### Step 5: Start Debugging
 
-### Making a Progressive Web App
+1. Open the Run and Debug panel.
+2. Select `Launch React Application`.
+3. Click the green Start Debugging button.
+4. VS Code will launch the application in Chrome.
+5. Set breakpoints in your React components or JavaScript files.
+6. Inspect variables, execution flow, and errors using the debugger.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+### Debugging Backend API Endpoints
 
-### Advanced Configuration
+The project also contains Node.js API handlers.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+These can be debugged using VS Code's Node.js debugger.
 
-### Deployment
+For example, if you run the backend development server with a Node.js process that supports the inspector, you can attach VS Code to it using a separate Node.js debugging configuration.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+The exact configuration depends on how the API endpoints are executed.
 
-### `npm run build` fails to minify
+## 9. Project Structure Overview
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
-# final-react-movies-project
+The project is organized into the following major directories:
+
+|# final-react-movies-project
