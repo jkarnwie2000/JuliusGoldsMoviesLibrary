@@ -19,9 +19,18 @@
 
 ### 🚀 Key Features
 
-*  📚 Dynamic Film Search & Discovery: Enables users to search and browse movies with dynamically loaded film data for an engaging discovery experience.
-*  ⚡ Seamless Navigation & Routing: Implements dynamic routing to provide smooth navigation between movie listings and individual film details.
-*  🎯 Responsive, Reusable Components: Features reusable movie card components with responsive layouts for a consistent browsing experience across desktop, tablet, and mobile devices.
+* 🎬 Curated home page rows of popular movies
+* 🔍 Live search with instant results as you type
+* ⭐ Real IMDb star ratings on every movie
+* 💲 Prices, sale discounts, and sort by price or rating
+* 🛒 Add to cart from any page, with quantity controls
+* 💳 Secure Stripe checkout with tax and mailing fee
+* 📧 Automatic order confirmation emails to buyer and business
+* 📊 Admin dashboard with revenue, top movies, and orders
+* 🔐 Email-verified admin accounts with secure passwords
+* ⚡ Fast loading with lazy-loaded rows and cached movie data
+* 📱 Responsive design for phones, tablets, and desktops
+* ✨ Smooth slide-up animations when opening a movie
 
 ## React Film App
 
