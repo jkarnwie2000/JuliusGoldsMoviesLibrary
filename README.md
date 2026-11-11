@@ -46,7 +46,7 @@ Two things I found while checking that change the setup:
 
 ---
 
-# Running Julius Gold's Movies Library locally
+# Running Julius Golds Movies Library locally
 
 The project has two parts:
 - a React front end (Create React App) in `src/`
