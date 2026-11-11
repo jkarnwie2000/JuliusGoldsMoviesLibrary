@@ -6,8 +6,16 @@
 
 ## 🛠️ Tech Stack
 
-* React — User interface development.  
-* REST API — Communication with web services through REST endpoints.
+* React 19: component-based UI
+* React Router: client-side page navigation
+* Vercel: hosting and serverless API functions
+* Stripe Checkout: secure payments, tax, mailing fee
+* Resend: order confirmation and verification emails
+* Vercel Blob: private admin account storage
+* OMDb API: movie data, cached via proxy
+* Font Awesome: icons and social media links
+* Axios: HTTP requests to movie API
+* CSS3: responsive layout and animations
 
 ### 🚀 Key Features
 
